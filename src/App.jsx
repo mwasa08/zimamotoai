@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import * as mammoth from "mammoth";
+import { Analytics } from "@vercel/analytics/react"
 
 // ─── PUTER.JS LOADER ──────────────────────────────────────────────────────────
 // Dynamically loads puter.js — no API key needed, free Claude access
@@ -1035,7 +1036,7 @@ function SettingsPage({ user, setUser, dark, isMobile }) {
         <div>©Mwasa Inc 2026 · Built for African Students</div>
         <div style={{ marginTop:4, opacity:0.6 }}>Version 1.0 · powered by Puter.js</div>
       </div>
-     
+      <Analytics />
     </div>
   );
 }

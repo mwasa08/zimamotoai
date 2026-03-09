@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import * as mammoth from "mammoth";
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
 // ─── PUTER.JS LOADER ──────────────────────────────────────────────────────────
 // Dynamically loads puter.js — no API key needed, free Claude access
 function usePuter() {

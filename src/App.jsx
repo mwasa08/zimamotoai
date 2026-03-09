@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import * as mammoth from "mammoth";
-import { Analytics } from "@vercel/analytics/react"
+
 // ─── PUTER.JS LOADER ──────────────────────────────────────────────────────────
 // Dynamically loads puter.js — no API key needed, free Claude access
 function usePuter() {
@@ -72,21 +72,21 @@ const MAJORS = [
 const DISCUSSION_ROOMS = [
   { id: 1, subject: "Calculus III", major: "science", members: 14, active: true, host: "Mwasa S", topic: "Integration techniques for final exam", msgs: 47 },
   { id: 2, subject: "Constitutional Law", major: "law", members: 9, active: true, host: "Yassin J.", topic: "Case study: Marbury v. Madison", msgs: 23 },
-  { id: 3, subject: "Microeconomics", major: "business", members: 21, active: true, host: "Grace N.", topic: "Market equilibrium problems", msgs: 88 },
+  { id: 3, subject: "Microeconomics", major: "business", members: 21, active: true, host: "Dr.Grace ", topic: "Market equilibrium problems", msgs: 88 },
   { id: 4, subject: "Data Structures", major: "ict", members: 17, active: false, host: "Ree O.", topic: "Trees and Graph algorithms", msgs: 34 },
   { id: 5, subject: "Organic Chemistry", major: "medical", members: 11, active: true, host: "Fatuma S.", topic: "Reaction mechanisms review", msgs: 61 },
-  { id: 6, subject: "African History", major: "humanities", members: 6, active: false, host: "Careen R.", topic: "Colonial era political structures", msgs: 19 },
+  { id: 6, subject: "African History", major: "humanities", members: 6, active: false, host: "Careen K.", topic: "Colonial era political structures", msgs: 19 },
 ];
 
 const BLOG_POSTS = {
   science: [
-    { id: 1, title: "Past Paper: UDSM Mathematics 2023", author: "Mwasa E.", type: "pastpaper", likes: 45, date: "Feb 2024", summary: "Full solutions to all 2023 calculus questions including worked examples for integration and differential equations." },
-    { id: 2, title: "How I scored A in Physics without reading the whole textbook", author: "Amina J.", type: "tip", likes: 112, date: "Jan 2024", summary: "Focus on concepts, not memorization. Here's my method that worked for getting top marks while managing time efficiently." },
-    { id: 3, title: "Organic Chemistry Reaction Cheat Sheet", author: "Mwasa M.", type: "material", likes: 78, date: "Mar 2024", summary: "One-page summary of all common organic reactions, conditions and mechanisms you need for your exams." },
+    { id: 1, title: "Past Paper: UDSM Mathematics 2023", author: "Mwasa S.", type: "pastpaper", likes: 45, date: "Feb 2024", summary: "Full solutions to all 2023 calculus questions including worked examples for integration and differential equations." },
+    { id: 2, title: "How I scored A in Physics without reading the whole textbook", author: "Octavius M.", type: "tip", likes: 112, date: "Jan 2024", summary: "Focus on concepts, not memorization. Here's my method that worked for getting top marks while managing time efficiently." },
+    { id: 3, title: "Organic Chemistry Reaction Cheat Sheet", author: "Mwasa S.", type: "material", likes: 78, date: "Mar 2024", summary: "One-page summary of all common organic reactions, conditions and mechanisms you need for your exams." },
   ],
   ict: [
-    { id: 4, title: "DSA Past Paper UDSM 2022-2023", author: "Mwasambughi S.", type: "pastpaper", likes: 67, date: "Dec 2023", summary: "Data structures and algorithms questions with full solutions — sorting, trees, dynamic programming all covered." },
-    { id: 5, title: "How to pass Operating Systems in one week", author: "Samwel E.", type: "tip", likes: 89, date: "Feb 2024", summary: "Focused revision plan, key topics and shortcut mnemonics to understand OS concepts quickly before exams." },
+    { id: 4, title: "DSA Past Paper UDSM 2022-2023", author: "Mwasa S.", type: "pastpaper", likes: 67, date: "Dec 2023", summary: "Data structures and algorithms questions with full solutions — sorting, trees, dynamic programming all covered." },
+    { id: 5, title: "How to pass Operating Systems in one week", author: "Betty K.", type: "tip", likes: 89, date: "Feb 2024", summary: "Focused revision plan, key topics and shortcut mnemonics to understand OS concepts quickly before exams." },
   ],
   business: [
     { id: 6, title: "Macroeconomics Summary Notes — All Topics", author: "Grace N.", type: "material", likes: 134, date: "Mar 2024", summary: "Comprehensive yet concise notes covering GDP, inflation, monetary policy and international trade." },
@@ -101,7 +101,7 @@ const BLOG_POSTS = {
 };
 
 const ADVICE_POSTS = [
-  { id: 1, title: "Jinsi ya kuongeza GPA yako kwa semester moja", author: "Prof. Mwasa", avatar: "PM", color: "#F59E0B", category: "Academic", likes: 287, date: "Mar 2024", content: "Njia rahisi na za vitendo za kuboresha alama zako bila msongo wa mawazo.\n\n1. Jua mtihani unajumuisha nini — soma outline ya course yako kwanza.\n2. Tengeneza ratiba ya masomo — angalau saa 2 kila siku.\n3. Jiunge na discussion groups — kufundisha wengine kunakusaidia wewe pia.\n4. Tembelea lecturer wakati wa office hours.\n5. Fanya past papers miaka 3 iliyopita.\n\nUsisahau kupumzika vizuri usiku wa mtihani." },
+  { id: 1, title: "Jinsi ya kuongeza GPA yako kwa semester moja", author: "Mr. Mwasa", avatar: "PM", color: "#F59E0B", category: "Academic", likes: 287, date: "Mar 2024", content: "Njia rahisi na za vitendo za kuboresha alama zako bila msongo wa mawazo.\n\n1. Jua mtihani unajumuisha nini — soma outline ya course yako kwanza.\n2. Tengeneza ratiba ya masomo — angalau saa 2 kila siku.\n3. Jiunge na discussion groups — kufundisha wengine kunakusaidia wewe pia.\n4. Tembelea lecturer wakati wa office hours.\n5. Fanya past papers miaka 3 iliyopita.\n\nUsisahau kupumzika vizuri usiku wa mtihani." },
   { id: 2, title: "How to manage time as a university student", author: "Ms Betty J.", avatar: "AJ", color: "#10B981", category: "Life Skills", likes: 194, date: "Feb 2024", content: "Time management is the #1 skill university students need.\n\nThe Time Block Method:\n• Morning (6-9am): Your hardest subject\n• Afternoon: Group work, assignments, readings\n• Evening: 30-minute review\n\nKey rules:\n1. Plan your week every Sunday night\n2. Turn off your phone during study blocks\n3. Use Pomodoro — 25 min focus, 5 min break\n4. One day per week completely study-free\n\nConsistency beats intensity every time." },
   { id: 3, title: "Mental health: Ukweli kuhusu msongo wa mawazo chuoni", author: "Dr. Grace K.", avatar: "SK", color: "#EC4899", category: "Wellness", likes: 342, date: "Jan 2024", content: "Msongo wa mawazo ni tatizo halisi kwa wanafunzi wengi.\n\nDalili:\n• Usingizi mbaya\n• Kujisikia upweke\n• Kushindwa kujilazimisha kusoma\n\nMbinu za msaada:\n1. Zungumza na mtu unayemwamini\n2. Tembea nje kila siku — hata dakika 20\n3. Tembelea counseling services ya chuo\n\nKukaa kimya hakusaidii. Omba msaada — ni nguvu, si udhaifu." },
   { id: 4, title: "From CGPA 2.1 to 3.8: My honest story", author: "Yassin J.", avatar: "KO", color: "#8B5CF6", category: "Academic", likes: 509, date: "Mar 2024", content: "I was almost suspended after my second semester. CGPA 2.1. Here is exactly what I changed.\n\nWhat actually worked:\n1. Sitting in the front two rows of every lecture\n2. Making friends with the best student in each unit\n3. Starting assignments the day they are given\n4. Going to every consultation hour\n5. Reading at least one week ahead of the syllabus\n\nThe change is possible. Start today, not next semester." },
@@ -506,7 +506,7 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
         <div className="fade-up" style={{ textAlign:"center", padding:"40px 20px" }}>
           <div style={{ fontSize:58, marginBottom:16 }}>🧠</div>
           <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }} className="glow-text">Analyzing....</div>
-          <div style={{ fontSize:12, color:muted, marginBottom:20 }}>claude-sonnet-4-6 · Streaming · Free</div>
+          <div style={{ fontSize:12, color:muted, marginBottom:20 }}>powered  by claude-sonnet-4-6  </div>
           <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:24 }}>
             {[0,1,2,3].map(i=><div key={i} style={{ width:9, height:9, borderRadius:"50%", background:"#0072FF", animation:`pulse 1.4s ease-in-out ${i*0.22}s infinite` }} />)}
           </div>
@@ -1035,7 +1035,7 @@ function SettingsPage({ user, setUser, dark, isMobile }) {
         <div>©Mwasa Inc 2026 · Built for African Students</div>
         <div style={{ marginTop:4, opacity:0.6 }}>Version 1.0 · powered by Puter.js</div>
       </div>
-      <Analytics />
+     
     </div>
   );
 }

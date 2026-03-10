@@ -2,52 +2,85 @@ import { useState, useRef, useEffect } from "react";
 import * as mammoth from "mammoth";
 import { Analytics } from '@vercel/analytics/react';
 
-// ─── PUTER.JS LOADER ──────────────────────────────────────────────────────────
-// Dynamically loads puter.js — no API key needed, free Claude access
-function usePuter() {
-  const [ready, setReady] = useState(!!window.puter);
-  useEffect(() => {
-    if (window.puter) { setReady(true); return; }
-    const script = document.createElement("script");
-    script.src = "https://js.puter.com/v2/";
-    script.async = true;
-    script.onload = () => setReady(true);
-    script.onerror = () => console.error("Failed to load Puter.js");
-    document.head.appendChild(script);
-  }, []);
-  return ready;
+// ─── API CONFIGURATION ────────────────────────────────────────────────────────
+const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY;  // https://console.groq.com
+
+// Always ready — no script loading needed
+function useApiReady() {
+  return true;
 }
 
-// ─── CORE AI CALL (Puter.js — Free, No API Key) ───────────────────────────────
+// ─── CORE AI CALL (Groq — Fast streaming chat) ────────────────────────────────
 // Standard call — returns full text
 async function callAI(messages, system = "", maxTokens = 1000) {
-  const puterMsgs = system
+  const fullMessages = system
     ? [{ role: "system", content: system }, ...messages]
     : messages;
-  const response = await window.puter.ai.chat(puterMsgs, {
-    model: "claude-sonnet-4-6",
-    max_tokens: maxTokens,
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: fullMessages, max_tokens: maxTokens, temperature: 0.7 }),
   });
-  return response.message.content[0].text;
+  if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || "Groq error"); }
+  const data = await response.json();
+  return data.choices[0].message.content;
 }
 
 // Streaming call — calls onChunk(text) as tokens arrive, returns full text
 async function callAIStream(messages, system = "", onChunk, maxTokens = 1000) {
-  const puterMsgs = system
+  const fullMessages = system
     ? [{ role: "system", content: system }, ...messages]
     : messages;
-  const stream = await window.puter.ai.chat(puterMsgs, {
-    model: "claude-sonnet-4-6",
-    stream: true,
-    max_tokens: maxTokens,
+  const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${GROQ_API_KEY}` },
+    body: JSON.stringify({ model: "llama-3.3-70b-versatile", messages: fullMessages, stream: true, max_tokens: maxTokens, temperature: 0.7 }),
   });
+  if (!response.ok) { const e = await response.json(); throw new Error(e.error?.message || "Groq API error"); }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder("utf-8");
   let full = "";
-  for await (const part of stream) {
-    const chunk = part?.text || "";
-    full += chunk;
-    onChunk(full);
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    for (const line of chunk.split("\n").filter(l => l.startsWith("data: "))) {
+      const data = line.replace("data: ", "").trim();
+      if (data === "[DONE]") continue;
+      try { const text = JSON.parse(data).choices?.[0]?.delta?.content || ""; if (text) { full += text; onChunk(full); } } catch {}
+    }
   }
   return full;
+}
+
+// ─── PDF TEXT EXTRACTOR (PDF.js — free, no API needed) ──────────────────────
+async function extractPDFText(file) {
+  return new Promise((resolve, reject) => {
+    const run = () => {
+      const lib = window["pdfjs-dist/build/pdf"];
+      lib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const pdf = await lib.getDocument({ data: e.target.result }).promise;
+          let text = "";
+          for (let i = 1; i <= Math.min(pdf.numPages, 20); i++) {
+            const page = await pdf.getPage(i);
+            const ct = await page.getTextContent();
+            text += ct.items.map(s => s.str).join(" ") + "\n";
+          }
+          resolve(text.slice(0, 12000));
+        } catch(err) { reject(err); }
+      };
+      reader.readAsArrayBuffer(file);
+    };
+    if (window["pdfjs-dist/build/pdf"]) { run(); return; }
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+    s.onload = run;
+    s.onerror = () => reject(new Error("Failed to load PDF.js"));
+    document.head.appendChild(s);
+  });
 }
 
 // ─── FILE HELPERS ─────────────────────────────────────────────────────────────
@@ -102,7 +135,7 @@ const BLOG_POSTS = {
 };
 
 const ADVICE_POSTS = [
-  { id: 1, title: "Jinsi ya kuongeza GPA yako kwa semester moja", author: "Mr. Mwasa", avatar: "PM", color: "#F59E0B", category: "Academic", likes: 287, date: "Mar 2024", content: "Njia rahisi na za vitendo za kuboresha alama zako bila msongo wa mawazo.\n\n1. Jua mtihani unajumuisha nini — soma outline ya course yako kwanza.\n2. Tengeneza ratiba ya masomo — angalau saa 2 kila siku.\n3. Jiunge na discussion groups — kufundisha wengine kunakusaidia wewe pia.\n4. Tembelea lecturer wakati wa office hours.\n5. Fanya past papers miaka 3 iliyopita.\n\nUsisahau kupumzika vizuri usiku wa mtihani." },
+  { id: 1, title: "Jinsi ya kuongeza GPA yako kwa semester moja", author: "Prof. Mwasa", avatar: "PM", color: "#F59E0B", category: "Academic", likes: 287, date: "Mar 2024", content: "Njia rahisi na za vitendo za kuboresha alama zako bila msongo wa mawazo.\n\n1. Jua mtihani unajumuisha nini — soma outline ya course yako kwanza.\n2. Tengeneza ratiba ya masomo — angalau saa 2 kila siku.\n3. Jiunge na discussion groups — kufundisha wengine kunakusaidia wewe pia.\n4. Tembelea lecturer wakati wa office hours.\n5. Fanya past papers miaka 3 iliyopita.\n\nUsisahau kupumzika vizuri usiku wa mtihani." },
   { id: 2, title: "How to manage time as a university student", author: "Ms Betty J.", avatar: "AJ", color: "#10B981", category: "Life Skills", likes: 194, date: "Feb 2024", content: "Time management is the #1 skill university students need.\n\nThe Time Block Method:\n• Morning (6-9am): Your hardest subject\n• Afternoon: Group work, assignments, readings\n• Evening: 30-minute review\n\nKey rules:\n1. Plan your week every Sunday night\n2. Turn off your phone during study blocks\n3. Use Pomodoro — 25 min focus, 5 min break\n4. One day per week completely study-free\n\nConsistency beats intensity every time." },
   { id: 3, title: "Mental health: Ukweli kuhusu msongo wa mawazo chuoni", author: "Dr. Grace K.", avatar: "SK", color: "#EC4899", category: "Wellness", likes: 342, date: "Jan 2024", content: "Msongo wa mawazo ni tatizo halisi kwa wanafunzi wengi.\n\nDalili:\n• Usingizi mbaya\n• Kujisikia upweke\n• Kushindwa kujilazimisha kusoma\n\nMbinu za msaada:\n1. Zungumza na mtu unayemwamini\n2. Tembea nje kila siku — hata dakika 20\n3. Tembelea counseling services ya chuo\n\nKukaa kimya hakusaidii. Omba msaada — ni nguvu, si udhaifu." },
   { id: 4, title: "From CGPA 2.1 to 3.8: My honest story", author: "Yassin J.", avatar: "KO", color: "#8B5CF6", category: "Academic", likes: 509, date: "Mar 2024", content: "I was almost suspended after my second semester. CGPA 2.1. Here is exactly what I changed.\n\nWhat actually worked:\n1. Sitting in the front two rows of every lecture\n2. Making friends with the best student in each unit\n3. Starting assignments the day they are given\n4. Going to every consultation hour\n5. Reading at least one week ahead of the syllabus\n\nThe change is possible. Start today, not next semester." },
@@ -125,16 +158,26 @@ function useIsMobile() {
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function ZimamoApp() {
   const [page, setPage] = useState("home");
-  const [user, setUser] = useState({
-    name: "MWASAMBUGHI SAMWEL ELIA", avatar: "ME", color: "#10B981",
-    university: "University of Dar es Salaam", major: "ict",
-    year: "3rd Year", theme: "dark", lang: "sw", notifications: true,
+  const [user, setUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem("zimamoto_user");
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      name: "MWASAMBUGHI SAMWEL ELIA", avatar: "ME", color: "#10B981",
+      university: "University of Dar es Salaam", major: "ict",
+      year: "3rd Year", theme: "dark", lang: "sw", notifications: true,
+    };
   });
   const [blogMajor, setBlogMajor] = useState(null);
+  // Auto-persist user changes to localStorage
+  useEffect(() => {
+    try { localStorage.setItem("zimamoto_user", JSON.stringify(user)); } catch {}
+  }, [user]);
   const [showMajorPicker, setShowMajorPicker] = useState(false);
   const dark = user.theme === "dark";
   const isMobile = useIsMobile();
-  const puterReady = usePuter();
+  const puterReady = useApiReady();
 
   const navItems = [
     { id: "home", icon: "🤖", label: "Study AI" },
@@ -197,8 +240,8 @@ export default function ZimamoApp() {
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, paddingLeft:4 }}>
             <div style={{ width:38, height:38, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🔥</div>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
-              <div style={{ fontSize:10, color:muted }}>Study AI · v1.0</div>
+              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
+              <div style={{ fontSize:10, color:muted }}>Study AI · v1.1</div>
             </div>
           </div>
 
@@ -233,7 +276,7 @@ export default function ZimamoApp() {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px 0" }}>
               <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
               <div className="puter-badge">
-                {puterReady ? <><span style={{ fontSize:8 }}>●</span> AI Ready</> : <><div className="spinner" /> Loading</>}
+                <><span style={{ fontSize:8 }}>●</span> AI Ready</>
               </div>
             </div>
           )}
@@ -337,6 +380,95 @@ function renderInline(text, isUser=false) {
 }
 
 
+// ─── SMART SUMMARY RENDERER ──────────────────────────────────────────────────
+function SummaryRenderer({ text, dark }) {
+  if (!text) return null;
+  const color = dark ? "#CBD5E1" : "#374151";
+  const bg    = dark ? "#0D1525" : "#fff";
+  const border= dark ? "#1E2D4A" : "#DDE5F5";
+
+  // Section definitions: emoji marker → label + accent color
+  const SECTIONS = [
+    { marker:"📌", label:"Topic Overview",          accent:"#3B82F6" },
+    { marker:"🔑", label:"Key Concepts & Definitions", accent:"#8B5CF6" },
+    { marker:"📚", label:"Core Content",             accent:"#06B6D4" },
+    { marker:"⚡", label:"Important Facts to Remember", accent:"#F59E0B" },
+    { marker:"🔗", label:"How It All Connects",      accent:"#10B981" },
+    { marker:"🎯", label:"Exam Focus Areas",         accent:"#EF4444" },
+  ];
+
+  // Split text into sections by emoji markers
+  const sectionRegex = /(📌|🔑|📚|⚡|🔗|🎯)/g;
+  const parts = text.split(sectionRegex).filter(Boolean);
+
+  // Pair up [emoji, content, emoji, content ...]
+  const blocks = [];
+  for (let i = 0; i < parts.length; i++) {
+    const sec = SECTIONS.find(s => s.marker === parts[i]);
+    if (sec && i + 1 < parts.length) {
+      blocks.push({ ...sec, content: parts[i + 1].trim() });
+      i++; // skip content part
+    }
+  }
+
+  // If no sections parsed (AI ignored format), fall back to plain text
+  if (blocks.length === 0) {
+    return (
+      <div style={{ fontSize:14, lineHeight:1.9, color, whiteSpace:"pre-wrap" }}>{text}</div>
+    );
+  }
+
+  const renderLine = (line, key) => {
+    const trimmed = line.trimStart();
+    // Bullet lines
+    if (trimmed.startsWith("• ") || trimmed.startsWith("- ")) {
+      return (
+        <div key={key} style={{ display:"flex", gap:8, marginBottom:5 }}>
+          <span style={{ color:"#0072FF", flexShrink:0, marginTop:2 }}>•</span>
+          <span style={{ fontSize:13, lineHeight:1.7, color }}>{trimmed.slice(2)}</span>
+        </div>
+      );
+    }
+    // Numbered lines
+    if (/^\d+\./.test(trimmed)) {
+      const num = trimmed.match(/^(\d+)\.\s*/)[1];
+      const rest = trimmed.replace(/^\d+\.\s*/, "");
+      return (
+        <div key={key} style={{ display:"flex", gap:8, marginBottom:5 }}>
+          <span style={{ minWidth:20, height:20, borderRadius:"50%", background:"rgba(0,114,255,0.15)", color:"#0072FF", display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, flexShrink:0 }}>{num}</span>
+          <span style={{ fontSize:13, lineHeight:1.7, color }}>{rest}</span>
+        </div>
+      );
+    }
+    // Sub-section header (ALL CAPS or ends with :)
+    if (trimmed === trimmed.toUpperCase() && trimmed.length > 3 && trimmed.length < 60) {
+      return <div key={key} style={{ fontWeight:700, fontSize:13, color:"#0072FF", marginTop:10, marginBottom:4 }}>{trimmed}</div>;
+    }
+    // Empty line = spacer
+    if (!trimmed) return <div key={key} style={{ height:4 }} />;
+    // Normal paragraph
+    return <div key={key} style={{ fontSize:13, lineHeight:1.8, color, marginBottom:4 }}>{trimmed}</div>;
+  };
+
+  return (
+    <div style={{ display:"flex", flexDirection:"column", gap:14 }}>
+      {blocks.map((block, bi) => (
+        <div key={bi} style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, overflow:"hidden" }}>
+          {/* Section header */}
+          <div style={{ background:`${block.accent}18`, borderBottom:`1px solid ${block.accent}33`, padding:"10px 16px", display:"flex", alignItems:"center", gap:8 }}>
+            <span style={{ fontSize:18 }}>{block.marker}</span>
+            <span style={{ fontWeight:700, fontSize:14, color:block.accent }}>{block.label}</span>
+          </div>
+          {/* Section body */}
+          <div style={{ padding:"14px 16px" }}>
+            {block.content.split("\n").map((line, li) => renderLine(line, li))}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── STUDY AI ─────────────────────────────────────────────────────────────────
 function StudyAI({ user, dark, isMobile, puterReady }) {
   const [file, setFile] = useState(null);
@@ -367,31 +499,116 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
   };
 
   const process = async () => {
-    if (!file||!puterReady) return;
+    if (!file) return;
     setStage("processing"); setStreamPreview("");
     try {
-    const SYSTEM = `You are ZIMAMOTO AI — a smart study assistant for African university students. Analyze the academic material. Respond ONLY with valid JSON (no markdown fences): {"summary":"Structured takeaway with bullet points using • character. 300-500 words.","questions":[{"q":"question text","type":"MCQ|Short Answer|Essay|True/False","difficulty":"Easy|Medium|Hard","hint":"brief hint"}]} Generate exactly 12 questions mixing types and difficulties.`;
-      let messages;
-     if (file.name.endsWith(".pdf")) {
-        // Puter.js does not support PDF binary — send filename + ask AI to generate
-        messages = [{ role:"user", content:`Generate a detailed study summary and exam questions for a university-level PDF document titled: "${file.name}". Assume it is a typical African university academic document on that subject. Return the JSON.` }];
-      
-      
+      // ── Extract document text ─────────────────────────────────────────────
+      let docText = "";
+      if (file.name.endsWith(".pdf")) {
+        setStreamPreview("📖 Reading PDF pages...");
+        docText = await extractPDFText(file);
+        if (!docText.trim()) throw new Error("Could not extract text. PDF may be a scanned image.");
       } else if (file.name.endsWith(".docx") && extractedText) {
-        messages = [{ role:"user", content:`Analyze this academic document:\n\n${extractedText.slice(0,8000)}\n\nReturn the JSON.` }];
+        docText = extractedText.slice(0, 10000);
       } else {
-        messages = [{ role:"user", content:`Generate study summary and exam questions for a university-level document titled: "${file.name}". Return the JSON.` }];
+        docText = `University-level document titled: "${file.name}"`;
       }
-    let raw = "";
-    await callAIStream(messages, SYSTEM, (partial) => { setStreamPreview(partial); raw = partial; }, 4000);
-    const clean = raw.replace(/```json|```/g,"").trim();
-      console.log("RAW AI RESPONSE:", clean.slice(0, 500));
-      if (!clean || clean.length < 10) throw new Error("AI returned empty response. Check Puter.js is loaded and try again.");
-      const jsonStart = clean.indexOf("{");
-      const jsonEnd = clean.lastIndexOf("}");
-      if (jsonStart === -1 || jsonEnd === -1) throw new Error(`AI did not return JSON. Got: "${clean.slice(0,120)}..."`);
-      const parsed = JSON.parse(clean.slice(jsonStart, jsonEnd + 1));
-      setSummary(parsed.summary||""); setQuestions(parsed.questions||[]); setStage("results");
+
+      // ── CALL 1: Smart Summary (plain text — zero JSON issues) ─────────────
+      // Two separate calls completely eliminates all JSON parsing problems.
+      const SUMMARY_SYSTEM = `You are ZIMAMOTO AI — an expert academic summarizer for African university students who are SHORT ON TIME. Your job is to create a SMART STUDY SUMMARY that lets a student understand and revise the entire topic quickly.
+
+FORMAT YOUR SUMMARY EXACTLY LIKE THIS:
+
+📌 TOPIC OVERVIEW
+Write 2-3 sentences explaining what this topic is about and why it matters.
+
+🔑 KEY CONCEPTS & DEFINITIONS
+• [Term/Concept]: Clear, simple explanation (1-2 sentences each)
+• List ALL important terms and concepts from the material
+
+📚 CORE CONTENT
+Break down the main ideas into clear sections with bullet points. Explain each concept simply. Include important details, processes, theories, or frameworks. Use sub-bullets where needed.
+
+⚡ IMPORTANT FACTS TO REMEMBER
+• Numbered or bulleted list of the most critical facts, figures, dates, or formulas
+• Things most likely to appear in an exam
+
+🔗 HOW IT ALL CONNECTS
+1-2 sentences showing how the key ideas relate to each other.
+
+🎯 EXAM FOCUS AREAS
+• List the top 5-6 things an examiner is most likely to test on this topic
+
+Be thorough but clear. Use simple language. A student should be able to read this summary and feel ready to answer any question on the topic.`;
+
+      setStreamPreview("✍️ Generating smart summary...");
+      let summary = "";
+      await callAIStream(
+        [{ role:"user", content:`Summarize this academic material for exam revision:\n\n${docText}` }],
+        SUMMARY_SYSTEM,
+        (partial) => { summary = partial; setStreamPreview(partial); },
+        5000
+      );
+      summary = summary.trim();
+      if (!summary) throw new Error("Summary generation failed. Please try again.");
+
+      // ── CALL 2: 12 Exam Questions (pipe-delimited — zero JSON, zero parse failures) ──
+      // JSON always breaks on special chars. Pipe format is 100% reliable.
+      setStreamPreview("❓ Generating 12 exam questions...");
+
+      const QUESTIONS_SYSTEM = `You are an exam question generator for African university students.
+Output EXACTLY 12 lines. Each line follows this exact format (use | as separator):
+TYPE|DIFFICULTY|Question text here|Hint text here
+
+Rules:
+- TYPE must be exactly one of: MCQ, Short Answer, Essay, True/False
+- DIFFICULTY must be exactly one of: Easy, Medium, Hard
+- Use exactly 4 Easy, 4 Medium, 4 Hard lines
+- Do NOT number the lines. Do NOT add headers. Do NOT add any extra text.
+- Base every question directly on the provided material.
+- Questions must be specific to the content, not generic.
+
+Example line:
+MCQ|Easy|What is the main function of mitochondria?|Think about energy production in cells`;
+
+      const qRaw = await callAI(
+        [{ role:"user", content:`Generate 12 exam questions for this material using the pipe format:\n\n${docText.slice(0,6000)}` }],
+        QUESTIONS_SYSTEM,
+        3000
+      );
+
+      // Parse pipe-delimited lines — this CANNOT fail
+      const questions = [];
+      const diffs = ["Easy","Easy","Easy","Easy","Medium","Medium","Medium","Medium","Hard","Hard","Hard","Hard"];
+      const lines = qRaw.split("\n").map(l => l.trim()).filter(l => l.includes("|"));
+      for (const line of lines) {
+        const parts = line.split("|").map(p => p.trim());
+        if (parts.length >= 3) {
+          const type = ["MCQ","Short Answer","Essay","True/False"].includes(parts[0]) ? parts[0] : "Short Answer";
+          const difficulty = ["Easy","Medium","Hard"].includes(parts[1]) ? parts[1] : "Medium";
+          const q = parts[2] || "";
+          const hint = parts[3] || "";
+          if (q.length > 5) questions.push({ q, type, difficulty, hint });
+        }
+        if (questions.length === 12) break;
+      }
+      // Pad only if model gave fewer than 12 (rare)
+      while (questions.length < 12) {
+        const i = questions.length;
+        questions.push({ q:`Review question ${i+1}: Summarize a key idea from this material.`, type:"Short Answer", difficulty:diffs[i]||"Medium", hint:"Look at the main concepts covered." });
+      }
+
+      setSummary(summary); setQuestions(questions); setStage("results");
+
+      // Save to history
+      try {
+        const existing = JSON.parse(localStorage.getItem("zimamoto_study_history")||"[]");
+        const entry = { id:Date.now(), fileName:file.name, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}), summary, questions };
+        const updated = [entry, ...existing.filter(e=>e.fileName!==file.name)].slice(0,15);
+        localStorage.setItem("zimamoto_study_history", JSON.stringify(updated));
+      } catch {}
+
     } catch(e) { alert("Error: "+e.message); setStage("upload"); }
   };
 
@@ -436,8 +653,8 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
                 <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{file.name}</div>
                 <div style={{ fontSize:11, color:muted }}>{(file.size/1024).toFixed(0)} KB · Ready</div>
               </div>
-              <button className="z-btn z-btn-primary" style={{ padding:"10px 18px", fontSize:13, flexShrink:0 }} disabled={!puterReady} onClick={process}>
-                {puterReady?"Analyze ⚡":"Loading..."}
+              <button className="z-btn z-btn-primary" style={{ padding:"10px 18px", fontSize:13, flexShrink:0 }} onClick={process}>
+                Analyze ⚡
               </button>
             </div>
           )}
@@ -467,7 +684,7 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
     <button
       onClick={async () => {
         try {
-          const raw = await window.puter.kv.get("zimamoto_study_history");
+          const raw = localStorage.getItem("zimamoto_study_history");
           setStudyHistory(raw ? JSON.parse(raw) : []);
         } catch { setStudyHistory([]); }
         setShowStudyHistory(h => !h);
@@ -507,13 +724,13 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
         <div className="fade-up" style={{ textAlign:"center", padding:"40px 20px" }}>
           <div style={{ fontSize:58, marginBottom:16 }}>🧠</div>
           <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }} className="glow-text">Analyzing....</div>
-          <div style={{ fontSize:12, color:muted, marginBottom:20 }}>powered  by claude-sonnet-4-6  </div>
+          <div style={{ fontSize:12, color:muted, marginBottom:20 }}>powered by Groq</div>
           <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:24 }}>
             {[0,1,2,3].map(i=><div key={i} style={{ width:9, height:9, borderRadius:"50%", background:"#0072FF", animation:`pulse 1.4s ease-in-out ${i*0.22}s infinite` }} />)}
           </div>
           {streamPreview && (
             <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16, textAlign:"left", maxHeight:160, overflowY:"auto" }}>
-              <div style={{ fontSize:11, color:"#10B981", fontWeight:700, marginBottom:6 }}>⚡ Streaming response...</div>
+              <div style={{ fontSize:11, color:"#10B981", fontWeight:700, marginBottom:6 }}>⚡ Thinking  response...</div>
               <div style={{ fontSize:11, color:muted, fontFamily:"monospace", whiteSpace:"pre-wrap", lineHeight:1.5 }}>{streamPreview.slice(0,400)}{streamPreview.length>400?"...":""}</div>
             </div>
           )}
@@ -535,9 +752,12 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
             ))}
           </div>
           {activeResult==="summary" && (
-            <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:16, padding:22 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:14 }}><span style={{ fontSize:18 }}>📋</span><span style={{ fontWeight:700, fontSize:16 }}>Takeaway Summary</span></div>
-              <div style={{ fontSize:14, lineHeight:1.9, color: dark?"#CBD5E1":"#374151", whiteSpace:"pre-wrap" }}>{summary}</div>
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+                <span style={{ fontSize:18 }}>📋</span>
+                <span style={{ fontWeight:700, fontSize:16 }}>Smart Summary</span>
+              </div>
+              <SummaryRenderer text={summary} dark={dark} />
             </div>
           )}
           {activeResult==="questions" && (
@@ -580,26 +800,24 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
   useEffect(()=>{ messagesEndRef.current?.scrollIntoView({behavior:"smooth"}); }, [messages]);
 
   const sendMsg = async () => {
-    if (!input.trim()||!puterReady) return;
+    if (!input.trim()) return;
     const text = input;
     const now = new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
     setMessages(prev=>[...prev,{ id:Date.now(), sender:user.name, avatar:user.avatar, color:user.color, text, time:now, isAI:false }]);
     setInput("");
-    const isQuery = text.includes("?")||/explain|what|how|why|define|describe/i.test(text);
-    if (isQuery) {
-      const aiId = Date.now()+1;
-      setMessages(prev=>[...prev,{ id:aiId, sender:"ZIMAMOTO AI", avatar:"ZI", color:"#0072FF", text:"", time:now, isAI:true, streaming:true }]);
-      try {
-        const ctx = messages.slice(-5).map(m=>`${m.sender}: ${m.text}`).join("\n");
-        await callAIStream(
-          [{ role:"user", content:`Context:\n${ctx}\n\nStudent: ${text}` }],
-          "You are ZIMAMOTO AI in a student discussion room. Give concise academic answers. 2-3 sentences max. Use markdown: **bold** for key terms, ## for headers, - for bullets, 1. for steps. Never use --- dividers.",
-          (partial)=>{ setMessages(prev=>prev.map(m=>m.id===aiId?{...m,text:partial}:m)); },
-          600
-        );
-        setMessages(prev=>prev.map(m=>m.id===aiId?{...m,streaming:false}:m));
-      } catch {}
-    }
+    // Always respond — ZIMAMOTO AI participates in all messages
+    const aiId = Date.now()+1;
+    setMessages(prev=>[...prev,{ id:aiId, sender:"ZIMAMOTO AI", avatar:"ZI", color:"#0072FF", text:"", time:now, isAI:true, streaming:true }]);
+    try {
+      const ctx = messages.slice(-6).map(m=>`${m.sender}: ${m.text}`).join("\n");
+      await callAIStream(
+        [{ role:"user", content:`Discussion context:\n${ctx}\n\nStudent just said: "${text}"` }],
+        "You are ZIMAMOTO AI, an expert academic assistant in a live university student discussion room. Always respond helpfully. If the student asks a question, give a clear, detailed academic answer with examples. If they make a statement, add insight, correct misconceptions, or extend the discussion. Use markdown for structure: **bold** key terms, - for bullet points, 1. for steps. Keep responses focused but thorough — 3-6 sentences or a short structured list.",
+        (partial)=>{ setMessages(prev=>prev.map(m=>m.id===aiId?{...m,text:partial}:m)); },
+        1200
+      );
+      setMessages(prev=>prev.map(m=>m.id===aiId?{...m,streaming:false}:m));
+    } catch(err) { setMessages(prev=>prev.map(m=>m.id===aiId?{...m,text:"⚠️ Could not connect. Please try again.",streaming:false}:m)); }
   };
 
   const filteredRooms = filter==="all"?DISCUSSION_ROOMS:DISCUSSION_ROOMS.filter(r=>r.major===filter);
@@ -636,8 +854,8 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
           <div ref={messagesEndRef} />
         </div>
         <div style={{ padding:"12px 20px", background: dark?"#080C14":"#F0F4FF", borderTop:`1px solid ${border}`, display:"flex", gap:8 }}>
-          <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder={puterReady?"Ask a question (AI responds automatically)...":"Loading AI..."} value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} />
-          <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} disabled={!puterReady} onClick={sendMsg}>↑</button>
+          <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder="Ask a question (AI responds automatically)..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} />
+          <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} onClick={sendMsg}>↑</button>
         </div>
       </div>
     );
@@ -765,7 +983,7 @@ function AdvicePage({ user, dark, isMobile, puterReady }) {
   const [activePost, setActivePost] = useState(null);
   const [aiInput, setAiInput] = useState("");
 const [aiMessages, setAiMessages] = useState([
-  { role:"assistant", text:"Habari! Mimi ni ZIMAMOTO AI . Niko hapa kukusaidia! Niulize chochote kuhusu masomo, GPA, au career. 🎓" }
+  { role:"assistant", text: (()=>{ try { const u=JSON.parse(localStorage.getItem("zimamoto_user")||"{}"); return u.lang==="sw" ? "Habari! Mimi ni ZIMAMOTO AI 🔥 Niko hapa kukusaidia kikamilifu! Niulize chochote kuhusu masomo, GPA, mikakati ya kujifunza, au career yako. 🎓" : "Hello! I'm ZIMAMOTO AI 🔥 I'm here to help you fully! Ask me anything about your studies, GPA, learning strategies, or career path. 🎓"; } catch { return "Habari! Mimi ni ZIMAMOTO AI 🔥 Niko hapa kukusaidia! 🎓"; } })() }
 ]);
 const [aiStreaming, setAiStreaming] = useState(false);
 const [historyList, setHistoryList] = useState([]);
@@ -778,27 +996,27 @@ const [currentSessionId, setCurrentSessionId] = useState(null);
   const catColor = { Academic:"#0072FF","Life Skills":"#10B981",Wellness:"#EC4899",Career:"#F59E0B" };
   const pad = isMobile?"16px":"32px 40px";
 
-// Load all saved sessions from Puter KV
+// Load all saved sessions from localStorage
 const loadHistory = async () => {
   try {
-    const raw = await window.puter.kv.get("zimamoto_chat_history");
+    const raw = localStorage.getItem("zimamoto_chat_history");
     if (raw) setHistoryList(JSON.parse(raw));
   } catch { setHistoryList([]); }
 };
 
 // Save current chat as a session
 const saveSession = async (msgs, sessionId) => {
-  if (msgs.length < 2) return; // don't save empty chats
+  if (msgs.length < 2) return;
   try {
-    const raw = await window.puter.kv.get("zimamoto_chat_history");
+    const raw = localStorage.getItem("zimamoto_chat_history");
     const existing = raw ? JSON.parse(raw) : [];
     const firstUserMsg = msgs.find(m => m.role === "user");
     const title = firstUserMsg ? firstUserMsg.text.slice(0, 50) : "Chat Session";
     const updated = [
       { id: sessionId, title, date: new Date().toLocaleDateString("en-GB", { day:"numeric", month:"short", year:"numeric" }), messages: msgs },
       ...existing.filter(s => s.id !== sessionId)
-    ].slice(0, 20); // keep max 20 sessions
-    await window.puter.kv.set("zimamoto_chat_history", JSON.stringify(updated));
+    ].slice(0, 20);
+    localStorage.setItem("zimamoto_chat_history", JSON.stringify(updated));
     setHistoryList(updated);
   } catch(e) { console.error("Save failed", e); }
 };
@@ -821,12 +1039,12 @@ const openSession = (session) => {
   useEffect(()=>{ aiEndRef.current?.scrollIntoView({behavior:"smooth"}); }, [aiMessages]);
 useEffect(()=>{ aiEndRef.current?.scrollIntoView({behavior:"smooth"}); }, [aiMessages]);
 
-// Load history when Advice page opens and puter is ready
+// Load history on mount
 useEffect(() => {
-  if (puterReady) { loadHistory(); setCurrentSessionId(Date.now().toString()); }
-}, [puterReady]);
+  loadHistory(); setCurrentSessionId(Date.now().toString());
+}, []);
   const sendAi = async () => {
-    if (!aiInput.trim()||!puterReady||aiStreaming) return;
+    if (!aiInput.trim()||aiStreaming) return;
     const text = aiInput;
     setAiMessages(prev=>[...prev,{role:"user",text}]);
     setAiInput(""); setAiStreaming(true);
@@ -834,11 +1052,12 @@ useEffect(() => {
     setAiMessages(prev=>[...prev,{role:"assistant",text:"",id:aiId,streaming:true}]);
     try {
       const hist = aiMessages.slice(-8).map(m=>({role:m.role==="user"?"user":"assistant",content:m.text}));
+      const lang = user?.lang === "sw" ? "Respond in Kiswahili (Tanzanian). Mix in English for technical/academic terms." : "Respond in clear English.";
       await callAIStream(
         [...hist,{role:"user",content:text}],
-        "You are ZIMAMOTO AI, a friendly academic advisor for East African university students. Give practical, culturally relevant advice. You can speak Swahili and English. Be warm, concise, actionable. Use markdown: **bold** for key terms, ## for headers, - for bullets, 1. for numbered steps. Never use --- dividers.",
+        `You are ZIMAMOTO AI, a highly knowledgeable and warm academic advisor for East African university students. ${lang} Give comprehensive, deeply helpful advice. When asked about academics: explain concepts clearly with examples, give step-by-step strategies, mention what examiners look for. When asked about career/life: give practical, realistic, culturally relevant guidance. When asked about mental health/stress: be empathetic, supportive and constructive. Always structure your response well using: ## for section headers, **bold** for important points, - for bullet lists, 1. for numbered steps. Give detailed responses of at least 150-300 words — students deserve thorough answers, not short dismissals. Never use --- dividers.`,
         (partial)=>{ setAiMessages(prev=>prev.map(m=>m.id===aiId?{...m,text:partial}:m)); },
-        900
+        2000
       );
       setAiMessages(prev => {
         const updated = prev.map(m => m.id===aiId ? {...m, streaming:false} : m);
@@ -919,7 +1138,7 @@ useEffect(() => {
     + New
   </button>
   <div className="puter-badge">
-    {puterReady?<><span style={{ fontSize:8 }}>●</span> Ready</>:<><div className="spinner"/>Loading</>}
+    <><span style={{ fontSize:8 }}>●</span> Ready</>
   </div>
 </div>
 
@@ -960,8 +1179,8 @@ useEffect(() => {
             <div ref={aiEndRef} />
           </div>
           <div style={{ display:"flex", gap:8, marginBottom:12 }}>
-            <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder={puterReady?"Niulize chochote / Ask me anything...":"Loading Puter.js..."} value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendAi()} />
-            <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} disabled={!puterReady||aiStreaming} onClick={sendAi}>↑</button>
+            <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder="Niulize chochote / Ask me anything..." value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendAi()} />
+            <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} disabled={aiStreaming} onClick={sendAi}>↑</button>
           </div>
           <div style={{ display:"flex", gap:6, flexWrap:"wrap" }}>
             {["Jinsi ya kuongeza GPA?","How to beat exam stress?","Best note-taking method?","Career planning tips"].map(q=>(
@@ -982,7 +1201,10 @@ function SettingsPage({ user, setUser, dark, isMobile }) {
   const muted = dark?"#4A6080":"#7A8EB0";
   const pad = isMobile?"16px":"32px 40px";
   const up = (k,v) => setUser(p=>({...p,[k]:v}));
-  const save = () => { setSaved(true); setTimeout(()=>setSaved(false),2000); };
+  const save = () => {
+    try { localStorage.setItem("zimamoto_user", JSON.stringify(user)); } catch {}
+    setSaved(true); setTimeout(()=>setSaved(false),2000);
+  };
 
   return (
     <div style={{ padding:pad }}>
@@ -1034,7 +1256,7 @@ function SettingsPage({ user, setUser, dark, isMobile }) {
       <div style={{ textAlign:"center", marginTop:30, color:muted, fontSize:12 }}>
         <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
         <div>©Mwasa Inc 2026 · Built for African Students</div>
-        <div style={{ marginTop:4, opacity:0.6 }}>Version 1.0 · powered by Puter.js</div>
+        <div style={{ marginTop:4, opacity:0.6 }}>Version 1.1 · powered by Groq</div>
       </div>
       <Analytics />
     </div>

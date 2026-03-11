@@ -12,25 +12,84 @@ function useApiReady() {
 
 // ── PWA Install Hook ──────────────────────────────────────────────────────────
 function usePWAInstall() {
-  const [prompt, setPrompt] = useState(null);
+  const [nativePrompt, setNativePrompt] = useState(null);
   const [installed, setInstalled] = useState(false);
   useEffect(() => {
-    if (window.matchMedia("(display-mode: standalone)").matches) {
-      setInstalled(true); return;
-    }
-    const handler = (e) => { e.preventDefault(); setPrompt(e); };
+    if (window.matchMedia("(display-mode: standalone)").matches) { setInstalled(true); return; }
+    const handler = (e) => { e.preventDefault(); setNativePrompt(e); };
     window.addEventListener("beforeinstallprompt", handler);
-    window.addEventListener("appinstalled", () => { setInstalled(true); setPrompt(null); });
+    window.addEventListener("appinstalled", () => setInstalled(true));
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
   const install = async () => {
-    if (!prompt) return;
-    prompt.prompt();
-    const { outcome } = await prompt.userChoice;
-    if (outcome === "accepted") setInstalled(true);
-    setPrompt(null);
+    if (nativePrompt) { nativePrompt.prompt(); const {outcome} = await nativePrompt.userChoice; if (outcome==="accepted") setInstalled(true); setNativePrompt(null); }
   };
-  return { prompt, installed, install };
+  return { nativePrompt, installed, install };
+}
+
+// ── Install Modal — always works on any platform ──────────────────────────────
+function InstallModal({ onClose }) {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const isAndroid = /Android/.test(navigator.userAgent);
+  return (
+    <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(8px)" }}>
+      <div style={{ background:"#0D1525", border:"1px solid #1E2D4A", borderRadius:22, width:"100%", maxWidth:400, padding:28 }}>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:18 }}>📲 Install ZIMAMOTO AI</div>
+          <button onClick={onClose} style={{ background:"none", border:"none", color:"#4A6080", fontSize:22, cursor:"pointer" }}>✕</button>
+        </div>
+        {isIOS ? (
+          <div>
+            <div style={{ fontSize:13, color:"#CBD5E1", marginBottom:16, lineHeight:1.7 }}>To install on iPhone/iPad:</div>
+            {[
+              { icon:"1️⃣", text:'Open this page in Safari (not Chrome)' },
+              { icon:"2️⃣", text:'Tap the Share button at the bottom (□↑)' },
+              { icon:"3️⃣", text:'Scroll down and tap "Add to Home Screen"' },
+              { icon:"4️⃣", text:'Tap "Add" — done! 🎉' },
+            ].map((s,i) => (
+              <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:12 }}>
+                <span style={{ fontSize:18 }}>{s.icon}</span>
+                <span style={{ fontSize:13, color:"#CBD5E1", lineHeight:1.6 }}>{s.text}</span>
+              </div>
+            ))}
+          </div>
+        ) : isAndroid ? (
+          <div>
+            <div style={{ fontSize:13, color:"#CBD5E1", marginBottom:16, lineHeight:1.7 }}>To install on Android:</div>
+            {[
+              { icon:"1️⃣", text:'Open this page in Chrome' },
+              { icon:"2️⃣", text:'Tap the 3-dot menu (⋮) at the top right' },
+              { icon:"3️⃣", text:'Tap "Add to Home Screen"' },
+              { icon:"4️⃣", text:'Tap "Add" — done! 🎉' },
+            ].map((s,i) => (
+              <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:12 }}>
+                <span style={{ fontSize:18 }}>{s.icon}</span>
+                <span style={{ fontSize:13, color:"#CBD5E1", lineHeight:1.6 }}>{s.text}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div>
+            <div style={{ fontSize:13, color:"#CBD5E1", marginBottom:16, lineHeight:1.7 }}>To install on PC:</div>
+            {[
+              { icon:"1️⃣", text:'Open this page in Chrome or Edge' },
+              { icon:"2️⃣", text:'Look for the install icon (⊕) in the address bar — right side' },
+              { icon:"3️⃣", text:'If you don\'t see it: click the 3-dot menu → "Install ZIMAMOTO AI"' },
+              { icon:"4️⃣", text:'Click "Install" — opens like a real app! 💻' },
+            ].map((s,i) => (
+              <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:12 }}>
+                <span style={{ fontSize:18 }}>{s.icon}</span>
+                <span style={{ fontSize:13, color:"#CBD5E1", lineHeight:1.6 }}>{s.text}</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <button onClick={onClose} style={{ width:"100%", marginTop:8, padding:"12px", background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:12, color:"white", fontWeight:700, fontSize:14, cursor:"pointer" }}>
+          Got it! 🔥
+        </button>
+      </div>
+    </div>
+  );
 }
 
 // ─── CORE AI CALL (Groq — Fast streaming chat) ────────────────────────────────
@@ -202,7 +261,12 @@ export default function ZimamoApp() {
   const dark = user.theme === "dark";
   const isMobile = useIsMobile();
   const puterReady = useApiReady();
-  const { prompt: installPrompt, installed: pwaInstalled, install: installPWA } = usePWAInstall();
+  const { nativePrompt, installed: pwaInstalled, install: installPWA } = usePWAInstall();
+  const [showInstallModal, setShowInstallModal] = useState(false);
+  const handleInstallClick = async () => {
+    if (nativePrompt) { await installPWA(); }
+    else { setShowInstallModal(true); }
+  };
 
   const navItems = [
     { id: "home", icon: "🤖", label: "Study AI" },
@@ -283,13 +347,12 @@ export default function ZimamoApp() {
             ))}
           </nav>
 
-          {/* Install App button */}
-          {!pwaInstalled && installPrompt && (
-            <button onClick={installPWA} style={{ marginBottom:10, width:"100%", padding:"10px 14px", background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:12, color:"white", fontWeight:700, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, justifyContent:"center", boxShadow:"0 4px 14px rgba(0,114,255,0.35)" }}>
+          {/* Install App button — always visible */}
+          {!pwaInstalled ? (
+            <button onClick={handleInstallClick} style={{ marginBottom:10, width:"100%", padding:"10px 14px", background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:12, color:"white", fontWeight:700, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, justifyContent:"center", boxShadow:"0 4px 14px rgba(0,114,255,0.35)" }}>
               <span style={{ fontSize:15 }}>📲</span> Install App
             </button>
-          )}
-          {pwaInstalled && (
+          ) : (
             <div style={{ marginBottom:10, padding:"8px 14px", background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)", borderRadius:12, color:"#10B981", fontWeight:700, fontSize:11, textAlign:"center" }}>
               ✅ Installed
             </div>
@@ -312,8 +375,8 @@ export default function ZimamoApp() {
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px 0" }}>
               <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                {!pwaInstalled && installPrompt && (
-                  <button onClick={installPWA} style={{ background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:20, color:"white", fontWeight:700, fontSize:11, cursor:"pointer", padding:"5px 14px", display:"flex", alignItems:"center", gap:5 }}>
+                {!pwaInstalled && (
+                  <button onClick={handleInstallClick} style={{ background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:20, color:"white", fontWeight:700, fontSize:11, cursor:"pointer", padding:"5px 14px" }}>
                     📲 Install
                   </button>
                 )}
@@ -328,6 +391,9 @@ export default function ZimamoApp() {
           {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} />}
         </div>
       </main>
+
+      {/* ── INSTALL MODAL ── */}
+      {showInstallModal && <InstallModal onClose={() => setShowInstallModal(false)} />}
 
       {/* ── MOBILE BOTTOM NAV ── */}
       {isMobile && (

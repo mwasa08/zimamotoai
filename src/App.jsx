@@ -10,6 +10,29 @@ function useApiReady() {
   return true;
 }
 
+// ── PWA Install Hook ──────────────────────────────────────────────────────────
+function usePWAInstall() {
+  const [prompt, setPrompt] = useState(null);
+  const [installed, setInstalled] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia("(display-mode: standalone)").matches) {
+      setInstalled(true); return;
+    }
+    const handler = (e) => { e.preventDefault(); setPrompt(e); };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => { setInstalled(true); setPrompt(null); });
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+  const install = async () => {
+    if (!prompt) return;
+    prompt.prompt();
+    const { outcome } = await prompt.userChoice;
+    if (outcome === "accepted") setInstalled(true);
+    setPrompt(null);
+  };
+  return { prompt, installed, install };
+}
+
 // ─── CORE AI CALL (Groq — Fast streaming chat) ────────────────────────────────
 // Standard call — returns full text
 async function callAI(messages, system = "", maxTokens = 1000) {
@@ -179,6 +202,7 @@ export default function ZimamoApp() {
   const dark = user.theme === "dark";
   const isMobile = useIsMobile();
   const puterReady = useApiReady();
+  const { prompt: installPrompt, installed: pwaInstalled, install: installPWA } = usePWAInstall();
 
   const navItems = [
     { id: "home", icon: "🤖", label: "Study AI" },
@@ -259,6 +283,17 @@ export default function ZimamoApp() {
             ))}
           </nav>
 
+          {/* Install App button */}
+          {!pwaInstalled && installPrompt && (
+            <button onClick={installPWA} style={{ marginBottom:10, width:"100%", padding:"10px 14px", background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:12, color:"white", fontWeight:700, fontSize:12, cursor:"pointer", display:"flex", alignItems:"center", gap:8, justifyContent:"center", boxShadow:"0 4px 14px rgba(0,114,255,0.35)" }}>
+              <span style={{ fontSize:15 }}>📲</span> Install App
+            </button>
+          )}
+          {pwaInstalled && (
+            <div style={{ marginBottom:10, padding:"8px 14px", background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)", borderRadius:12, color:"#10B981", fontWeight:700, fontSize:11, textAlign:"center" }}>
+              ✅ Installed
+            </div>
+          )}
           <div style={{ borderTop:`1px solid ${border}`, paddingTop:16, display:"flex", alignItems:"center", gap:10 }}>
             <div style={{ width:36, height:36, borderRadius:"50%", background:`${user.color}22`, border:`2px solid ${user.color}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:user.color, flexShrink:0 }}>{user.avatar}</div>
             <div style={{ minWidth:0 }}>
@@ -276,8 +311,13 @@ export default function ZimamoApp() {
           {isMobile && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px 0" }}>
               <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
-              <div className="puter-badge">
-                <><span style={{ fontSize:8 }}>●</span> AI Ready</>
+              <div style={{ display:"flex", alignItems:"center", gap:8 }}>
+                {!pwaInstalled && installPrompt && (
+                  <button onClick={installPWA} style={{ background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:20, color:"white", fontWeight:700, fontSize:11, cursor:"pointer", padding:"5px 14px", display:"flex", alignItems:"center", gap:5 }}>
+                    📲 Install
+                  </button>
+                )}
+                <div className="puter-badge"><span style={{ fontSize:8 }}>●</span> AI Ready</div>
               </div>
             </div>
           )}

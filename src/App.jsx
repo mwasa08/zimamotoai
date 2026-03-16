@@ -246,11 +246,17 @@ export default function ZimamoApp() {
       const saved = localStorage.getItem("zimamoto_user");
       if (saved) return JSON.parse(saved);
     } catch {}
-    return {
-      name: "MWASAMBUGHI SAMWEL ELIA", avatar: "ME", color: "#10B981",
-      university: "University of Dar es Salaam", major: "ict",
-      year: "3rd Year", theme: "dark", lang: "sw", notifications: true,
-    };
+  return {
+  name: "",
+  avatar: "ME",
+  color: "#10B981",
+  university: "",
+  major: "",
+  year: "",
+  theme: "dark",
+  lang: "sw",
+  notifications: true,
+};
   });
   const [blogMajor, setBlogMajor] = useState(null);
   // Auto-persist user changes to localStorage

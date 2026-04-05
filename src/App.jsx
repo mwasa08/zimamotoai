@@ -246,17 +246,11 @@ export default function ZimamoApp() {
       const saved = localStorage.getItem("zimamoto_user");
       if (saved) return JSON.parse(saved);
     } catch {}
-  return {
-  name: "",
-  avatar: "ME",
-  color: "#10B981",
-  university: "",
-  major: "",
-  year: "",
-  theme: "dark",
-  lang: "sw",
-  notifications: true,
-};
+    return {
+      name: "MWASAMBUGHI SAMWEL ELIA", avatar: "ME", color: "#10B981",
+      university: "University of Dar es Salaam", major: "ict",
+      year: "3rd Year", theme: "dark", lang: "sw", notifications: true,
+    };
   });
   const [blogMajor, setBlogMajor] = useState(null);
   // Auto-persist user changes to localStorage
@@ -586,20 +580,30 @@ function SummaryRenderer({ text, dark }) {
 function StudyAI({ user, dark, isMobile, puterReady }) {
   const [file, setFile] = useState(null);
   const [extractedText, setExtractedText] = useState("");
-  const [stage, setStage] = useState("upload");
+  const [stage, setStage] = useState("chat");
   const [summary, setSummary] = useState("");
   const [questions, setQuestions] = useState([]);
   const [activeResult, setActiveResult] = useState("summary");
-  const [dragOver, setDragOver] = useState(false);
   const [streamPreview, setStreamPreview] = useState("");
+  const [studyHistory, setStudyHistory] = useState([]);
+  const [showStudyHistory, setShowStudyHistory] = useState(false);
+  // Chat input state
+  const [chatMessages, setChatMessages] = useState([
+    { id:0, role:"ai", text: user.lang==="sw"
+        ? "Habari! Mimi ni ZIMAMOTO AI 🔥\nNiulize swali lolote la masomo, au attach faili (PDF/DOCX) upate:\n• Smart Summary ya sehemu 6\n• Maswali 12 ya mtihani\n• Tags za ugumu"
+        : "Hello! I'm ZIMAMOTO AI 🔥\nAsk me any study question, or attach a file (PDF/DOCX) to get:\n• 6-section Smart Summary\n• 12 Exam Questions\n• Difficulty tags & hints" }
+  ]);
+  const [chatInput, setChatInput] = useState("");
+  const [pendingFile, setPendingFile] = useState(null);
+  const [isGlowFocused, setIsGlowFocused] = useState(false);
+  const [chatStreaming, setChatStreaming] = useState(false);
   const fileRef = useRef();
+  const chatEndRef = useRef();
+  const textareaRef = useRef();
   const bg = dark?"#0D1525":"#fff";
   const border = dark?"#1E2D4A":"#DDE5F5";
   const muted = dark?"#4A6080":"#7A8EB0";
   const pad = isMobile?"16px":"32px 40px";
-  // ADD these 3 lines after your existing useState declarations
-const [studyHistory, setStudyHistory] = useState([]);
-const [showStudyHistory, setShowStudyHistory] = useState(false);
 
   const handleFile = async (f) => {
     if (!f) return;
@@ -609,6 +613,68 @@ const [showStudyHistory, setShowStudyHistory] = useState(false);
     if (f.name.endsWith(".docx")) {
       try { const buf = await readAsArrayBuffer(f); const res = await mammoth.extractRawText({ arrayBuffer:buf }); setExtractedText(res.value); } catch {}
     }
+  };
+
+  // Auto-scroll chat
+  useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior:"smooth" }); }, [chatMessages]);
+
+  // Auto-resize textarea
+  const resizeTextarea = () => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = Math.min(el.scrollHeight, 160) + "px";
+  };
+
+  const sendChat = async () => {
+    const text = chatInput.trim();
+    if (!text && !pendingFile) return;
+    if (chatStreaming) return;
+
+    // If file attached — run full analysis (with optional question as context)
+    if (pendingFile) {
+      await handleFile(pendingFile);
+      // Add user message to chat showing file + question
+      const userMsg = { id:Date.now(), role:"user", text: text ? `${text}\n\n📎 ${pendingFile.name}` : `📎 ${pendingFile.name}` };
+      setChatMessages(prev => [...prev, userMsg]);
+      setChatInput(""); setPendingFile(null);
+      if (textareaRef.current) { textareaRef.current.style.height = "auto"; }
+      // Small delay to let extractedText state settle, then process
+      setTimeout(() => process(), 100);
+      return;
+    }
+
+    // Text-only question — answer in chat
+    const userMsg = { id:Date.now(), role:"user", text };
+    setChatMessages(prev => [...prev, userMsg]);
+    setChatInput("");
+    if (textareaRef.current) { textareaRef.current.style.height = "auto"; }
+    setChatStreaming(true);
+
+    const aiId = Date.now() + 1;
+    setChatMessages(prev => [...prev, { id:aiId, role:"ai", text:"", streaming:true }]);
+
+    const STUDY_SYSTEM = user.lang === "sw"
+      ? "Wewe ni ZIMAMOTO AI, msaidizi wa masomo wa hali ya juu kwa wanafunzi wa vyuo vya Afrika. Jibu kwa Kiswahili. Toa maelezo ya kina, ya kisomi na yanayofaa. Tumia **bold** kwa maneno muhimu, ## kwa vichwa, - kwa orodha. Jibu kwa undani wa maneno 150-300."
+      : "You are ZIMAMOTO AI, an expert study assistant for African university students. Give detailed, academic, helpful answers. Use **bold** for key terms, ## for headers, - for bullet lists. Aim for 150-300 words — thorough but clear.";
+
+    try {
+      // Build history — Groq requires messages to start with role:"user" — filter out leading assistant messages
+      const rawHist = chatMessages.slice(-8).map(m => ({ role: m.role==="user"?"user":"assistant", content: m.text || "" }));
+      const firstUserIdx = rawHist.findIndex(m => m.role === "user");
+      const hist = firstUserIdx === -1 ? [] : rawHist.slice(firstUserIdx);
+      await callAIStream(
+        [...hist, { role:"user", content: text }],
+        STUDY_SYSTEM,
+        (partial) => { setChatMessages(prev => prev.map(m => m.id===aiId ? {...m, text:partial} : m)); },
+        2500
+      );
+      setChatMessages(prev => prev.map(m => m.id===aiId ? {...m, streaming:false} : m));
+    } catch(err) {
+      console.error("Chat AI error:", err.message);
+      setChatMessages(prev => prev.map(m => m.id===aiId ? {...m, text:`⚠️ Error: ${err.message}. Please try again.`, streaming:false} : m));
+    }
+    setChatStreaming(false);
   };
 
   const process = async () => {
@@ -713,6 +779,7 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
       }
 
       setSummary(summary); setQuestions(questions); setStage("results");
+      setChatMessages(prev => [...prev, { id:Date.now(), role:"ai", text:`✅ Analysis complete! I found **${questions.length} exam questions** and a **6-section smart summary** for **${file?.name || "your document"}**. Tap the tabs below to explore your study pack.` }]);
 
       // Save to history
       try {
@@ -729,110 +796,93 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
   const typeColor = { MCQ:"#3B82F6", "Short Answer":"#8B5CF6", Essay:"#F97316", "True/False":"#06B6D4" };
 
   return (
-    <div style={{ padding:pad }}>
-      <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:8 }}>
-        <div style={{ width:46, height:46, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22 }}>🔥</div>
-        <div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
-          <div style={{ display:"flex", alignItems:"center", gap:6, marginTop:2 }}>
-            <div style={{ fontSize:12, color:muted }}>Your AI Study Buddy</div>
+    <div style={{ padding:pad, display:"flex", flexDirection:"column", minHeight: isMobile?"calc(100vh - 65px)":"calc(100vh - 40px)" }}>
+
+      {/* ── HEADER ── */}
+      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
+        <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+          <div style={{ width:40, height:40, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:11, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🔥</div>
+          <div>
+            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?18:22, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
+            <div style={{ fontSize:11, color:muted }}>Your AI Study Buddy</div>
           </div>
         </div>
-      </div>
-      <p style={{ fontSize:13, color:muted, marginBottom:22, lineHeight:1.6 }}>Upload your notes or textbook — get instant summaries &amp; predicted exam questions</p>
-
-      {stage==="upload" && (
-        <div className="fade-up">
-          <div className="upload-zone" style={dragOver?{borderColor:"#0072FF",background:"rgba(0,114,255,0.1)"}: {}}
-            onClick={() => fileRef.current.click()}
-            onDragOver={e=>{e.preventDefault();setDragOver(true);}}
-            onDragLeave={()=>setDragOver(false)}
-            onDrop={e=>{e.preventDefault();setDragOver(false);handleFile(e.dataTransfer.files[0]);}}>
-            <div style={{ fontSize:52, marginBottom:14 }}>📂</div>
-            <div style={{ fontWeight:700, fontSize:16, color:"#ed9b96", marginBottom:6 }}>Drop your file here</div>
-            <div style={{ fontSize:12, color:muted, marginBottom:18 }}>Notes, textbook chapters, lecture slides</div>
-            <div style={{ display:"flex", justifyContent:"center", gap:8 }}>
-              {[".PDF",".DOCX",".PPTX"].map(t=><span key={t} style={{ background:"rgba(0,114,255,0.15)", color:"#fbfbfb", padding:"4px 12px", borderRadius:20, fontSize:11, fontWeight:700 }}>{t}</span>)}
-            </div>
-          </div>
-          <input ref={fileRef} type="file" accept=".pdf,.docx,.pptx" style={{ display:"none" }} onChange={e=>handleFile(e.target.files[0])} />
-
-          {file && (
-            <div className="fade-up" style={{ marginTop:16, background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16, display:"flex", alignItems:"center", gap:12 }}>
-              <div style={{ width:46, height:46, background:"linear-gradient(135deg,rgba(0,114,255,0.15),rgba(124,58,237,0.15))", borderRadius:12, display:"flex", alignItems:"center", justifyContent:"center", fontSize:24 }}>
-                {file.name.endsWith(".pdf")?"📄":file.name.endsWith(".docx")?"📝":"📊"}
-              </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{file.name}</div>
-                <div style={{ fontSize:11, color:muted }}>{(file.size/1024).toFixed(0)} KB · Ready</div>
-              </div>
-              <button className="z-btn z-btn-primary" style={{ padding:"10px 18px", fontSize:13, flexShrink:0 }} onClick={process}>
-                Analyze ⚡
-              </button>
-            </div>
+        <div style={{ display:"flex", gap:8 }}>
+          {stage==="results" && (
+            <button onClick={()=>{setStage("chat");setFile(null);setSummary("");setQuestions([]);}}
+              style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:10, padding:"6px 14px", fontSize:12, color:"#0072FF", cursor:"pointer", fontWeight:600 }}>
+              ← New Chat
+            </button>
           )}
+          <button onClick={async()=>{ try { const r=localStorage.getItem("zimamoto_study_history"); setStudyHistory(r?JSON.parse(r):[]); } catch { setStudyHistory([]); } setShowStudyHistory(h=>!h); }}
+            style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:10, padding:"6px 14px", fontSize:12, color:"#0072FF", cursor:"pointer", fontWeight:600 }}>
+            🕒 History
+          </button>
+        </div>
+      </div>
 
-          <div style={{ marginTop:28 }}>
-            <div style={{ fontSize:11, fontWeight:700, color:muted, textTransform:"uppercase", letterSpacing:"0.08em", marginBottom:14 }}>What you'll get</div>
-            <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr 1fr":"repeat(4,1fr)", gap:12 }}>
-              {[{icon:"📋",title:"Smart Summary",desc:"Key concepts"},{icon:"❓",title:"Exam Questions",desc:"12 questions"},{icon:"🎯",title:"Difficulty Tags",desc:"Easy·Medium·Hard"},{icon:"💡",title:"Hints",desc:"Per question"}].map(f=>(
-                <div key={f.title} style={{ background:bg, border:`1px solid ${border}`, borderRadius:12, padding:14 }}>
-                  <div style={{ fontSize:22, marginBottom:8 }}>{f.icon}</div>
-                  <div style={{ fontWeight:700, fontSize:13, marginBottom:4 }}>{f.title}</div>
-                  <div style={{ fontSize:11, color:muted }}>{f.desc}</div>
+      {/* ── HISTORY PANEL ── */}
+      {showStudyHistory && (
+        <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, overflow:"hidden", marginBottom:14 }}>
+          {studyHistory.length === 0
+            ? <div style={{ padding:"16px", textAlign:"center", color:muted, fontSize:13 }}>No past analyses yet.</div>
+            : studyHistory.map(item => (
+              <div key={item.id}
+                onClick={() => { setSummary(item.summary); setQuestions(item.questions); setStage("results"); setShowStudyHistory(false); }}
+                style={{ padding:"11px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}
+                onMouseEnter={e=>e.currentTarget.style.background="rgba(0,114,255,0.06)"}
+                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                <span style={{ fontSize:20 }}>{item.fileName.endsWith(".pdf")?"📄":item.fileName.endsWith(".docx")?"📝":"📊"}</span>
+                <div style={{ flex:1, minWidth:0 }}>
+                  <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.fileName}</div>
+                  <div style={{ fontSize:11, color:muted }}>{item.date} · {item.questions.length} questions</div>
                 </div>
-                
-              ))}
-            </div>
-          </div>
+                <span style={{ fontSize:11, color:"#0072FF", fontWeight:700 }}>Reopen →</span>
+              </div>
+            ))
+          }
         </div>
       )}
 
-        {/* ── PAST ANALYSES HISTORY ── */}
-<div style={{ marginTop:24 }}>
-  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:12 }}>
-    <div style={{ fontSize:11, fontWeight:700, color:muted, textTransform:"uppercase", letterSpacing:"0.08em" }}>
-      Past Analyses
-    </div>
-    <button
-      onClick={async () => {
-        try {
-          const raw = localStorage.getItem("zimamoto_study_history");
-          setStudyHistory(raw ? JSON.parse(raw) : []);
-        } catch { setStudyHistory([]); }
-        setShowStudyHistory(h => !h);
-      }}
-      style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:8, padding:"5px 12px", fontSize:11, color:"#0072FF", cursor:"pointer", fontWeight:600 }}>
-      🕒 History
-    </button>
-  </div>
-
-  {showStudyHistory && (
-    <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, overflow:"hidden" }}>
-      {studyHistory.length === 0
-        ? <div style={{ padding:"20px 16px", textAlign:"center", color:muted, fontSize:13 }}>No past analyses yet. Upload a file to get started.</div>
-        : studyHistory.map(item => (
-          <div key={item.id}
-            onClick={() => { setSummary(item.summary); setQuestions(item.questions); setStage("results"); setShowStudyHistory(false); }}
-            
-            style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}
-            onMouseEnter={e => e.currentTarget.style.background="rgba(0,114,255,0.06)"}
-            onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-            <div style={{ fontSize:22, flexShrink:0 }}>
-              {item.fileName.endsWith(".pdf") ? "📄" : item.fileName.endsWith(".docx") ? "📝" : "📊"}
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.fileName}</div>
-              <div style={{ fontSize:11, color:muted, marginTop:2 }}>{item.date} · {item.questions.length} questions</div>
-            </div>
-            <span style={{ fontSize:11, color:"#0072FF", fontWeight:700, flexShrink:0 }}>Reopen →</span>
+      {/* ── RESULTS TABS (only when stage=results) ── */}
+      {stage==="results" && (
+        <div className="fade-up" style={{ flex:1, overflowY:"auto", paddingBottom:16 }}>
+          <div style={{ display:"flex", gap:8, marginBottom:18 }}>
+            {["summary","questions"].map(tab=>(
+              <button key={tab} className="z-btn" onClick={()=>setActiveResult(tab)}
+                style={{ flex:1, padding:"11px", fontSize:13, background:activeResult===tab?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, color:activeResult===tab?"white":muted, border:`1px solid ${border}` }}>
+                {tab==="summary"?"📋 Summary":`❓ Questions (${questions.length})`}
+              </button>
+            ))}
           </div>
-        ))
-      }
-    </div>
-  )}
-</div>
+          {activeResult==="summary" && (
+            <div>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+                <span style={{ fontSize:18 }}>📋</span>
+                <span style={{ fontWeight:700, fontSize:16 }}>Smart Summary</span>
+              </div>
+              <SummaryRenderer text={summary} dark={dark} />
+            </div>
+          )}
+          {activeResult==="questions" && (
+            <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12 }}>
+              {questions.map((q,i)=>(
+                <div key={i} style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16 }}>
+                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
+                    <span className="tag" style={{ background:`${typeColor[q.type]||"#3B82F6"}20`, color:typeColor[q.type]||"#3B82F6" }}>{q.type}</span>
+                    <span className="tag" style={{ background:`${diffColor[q.difficulty]||"#F59E0B"}20`, color:diffColor[q.difficulty]||"#F59E0B" }}>{q.difficulty}</span>
+                    <span style={{ marginLeft:"auto", fontWeight:700, fontSize:12, color:muted }}>Q{i+1}</span>
+                  </div>
+                  <div style={{ fontWeight:600, fontSize:14, marginBottom:8, lineHeight:1.5 }}>{q.q}</div>
+                  {q.hint && <div style={{ fontSize:12, color:muted, fontStyle:"italic", borderTop:`1px solid ${border}`, paddingTop:8 }}>💡 {q.hint}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
+      {/* ── PROCESSING SPINNER ── */}
       {stage==="processing" && (
         <div className="fade-up" style={{ textAlign:"center", padding:"40px 20px" }}>
           <div style={{ fontSize:58, marginBottom:16 }}>🧠</div>
@@ -850,44 +900,124 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
         </div>
       )}
 
-      {stage==="results" && (
-        <div className="fade-up">
-          <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:18 }}>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:20 }}>Your Study Pack</div>
-            <button onClick={()=>{setStage("upload");setFile(null);}} style={{ background:"none", border:`1px solid ${border}`, borderRadius:8, padding:"5px 14px", color:muted, cursor:"pointer", fontSize:12 }}>+ New File</button>
-          </div>
-          <div style={{ display:"flex", gap:8, marginBottom:20 }}>
-            {["summary","questions"].map(tab=>(
-              <button key={tab} className="z-btn" onClick={()=>setActiveResult(tab)}
-                style={{ flex:1, padding:"12px", fontSize:13, background: activeResult===tab?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, color: activeResult===tab?"white":muted, border:`1px solid ${border}` }}>
-                {tab==="summary"?"📋 Summary":`❓ Questions (${questions.length})`}
+      {/* ── CHAT MESSAGES (stage=chat) ── */}
+      {stage==="chat" && (
+        <div style={{ flex:1, overflowY:"auto", marginBottom:16, display:"flex", flexDirection:"column", gap:12 }}>
+          {chatMessages.map(msg=>(
+            <div key={msg.id} className="fade-up" style={{ display:"flex", gap:10, alignItems:"flex-start", flexDirection:msg.role==="user"?"row-reverse":"row" }}>
+              {/* Avatar */}
+              <div style={{ width:34, height:34, borderRadius:"50%", flexShrink:0, display:"flex", alignItems:"center", justifyContent:"center", fontSize:msg.role==="ai"?16:12, fontWeight:700,
+                background: msg.role==="ai"?"linear-gradient(135deg,#00C6FF,#0072FF)":"rgba(139,92,246,0.18)",
+                border: msg.role==="ai"?"none":"2px solid rgba(139,92,246,0.35)",
+                color: msg.role==="ai"?"white":"#a78bfa" }}>
+                {msg.role==="ai"?"🔥":user.avatar}
+              </div>
+              {/* Bubble */}
+              <div style={{ maxWidth:"78%",
+                background: msg.role==="user"?"linear-gradient(135deg,rgba(0,198,255,0.18),rgba(0,114,255,0.22))":"rgba(255,255,255,0.04)",
+                border: msg.role==="user"?"1px solid rgba(0,114,255,0.3)":`1px solid ${border}`,
+                borderRadius: msg.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px",
+                padding:"11px 15px", fontSize:14, lineHeight:1.7,
+                color: dark?"#CBD5E1":"#374151" }}>
+                {msg.streaming && !msg.text
+                  ? <div style={{ display:"flex", gap:4, alignItems:"center", padding:"4px 0" }}>
+                      {[0,1,2].map(i=><div key={i} style={{ width:7, height:7, borderRadius:"50%", background:"rgba(0,114,255,0.5)", animation:`pulse 1.4s ease-in-out ${i*0.2}s infinite` }} />)}
+                    </div>
+                  : <MarkdownText text={msg.text} isUser={msg.role==="user"} />
+                }
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+      )}
+
+      {/* ── CHAT INPUT BOX (always shown except processing/results) ── */}
+      {(stage==="chat") && (
+        <div style={{ flexShrink:0 }}>
+          {/* Hint tags */}
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
+            {[
+              user.lang==="sw" ? "Eleza dhana hii" : "Explain this concept",
+              user.lang==="sw" ? "Maswali ya mtihani" : "Exam questions",
+              user.lang==="sw" ? "Muhtasari wa haraka" : "Quick summary",
+            ].map(hint=>(
+              <button key={hint} onClick={()=>{ setChatInput(hint); textareaRef.current?.focus(); }}
+                style={{ background:"rgba(255,255,255,0.04)", border:`1px solid ${border}`, borderRadius:20, padding:"4px 12px", fontSize:11, color:muted, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,114,255,0.1)";e.currentTarget.style.color="#60A5FA";e.currentTarget.style.borderColor="rgba(0,114,255,0.3)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.04)";e.currentTarget.style.color=muted;e.currentTarget.style.borderColor=border;}}>
+                {hint}
               </button>
             ))}
           </div>
-          {activeResult==="summary" && (
-            <div>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
-                <span style={{ fontSize:18 }}>📋</span>
-                <span style={{ fontWeight:700, fontSize:16 }}>Smart Summary</span>
-              </div>
-              <SummaryRenderer text={summary} dark={dark} />
-            </div>
-          )}
-          {activeResult==="questions" && (
-            <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr":"1fr 1fr", gap:12 }}>
-              {questions.map((q,i)=>(
-                <div key={i} style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16 }}>
-                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
-                    <span className="tag" style={{ background:`${typeColor[q.type]||"#3B82F6"}20`, color:typeColor[q.type]||"#3B82F6" }}>{q.type}</span>
-                    <span className="tag" style={{ background:`${diffColor[q.difficulty]||"#F59E0B"}20`, color:diffColor[q.difficulty]||"#F59E0B" }}>{q.difficulty}</span>
-                    <span style={{ marginLeft:"auto", fontWeight:700, fontSize:12, color:muted }}>Q{i+1}</span>
-                  </div>
-                  <div style={{ fontWeight:600, fontSize:14, marginBottom:8, lineHeight:1.5 }}>{q.q}</div>
-                  {q.hint && <div style={{ fontSize:12, color:muted, fontStyle:"italic", borderTop:`1px solid ${border}`, paddingTop:8 }}>💡 {q.hint}</div>}
+
+          {/* Glow ring wrapper */}
+          <div style={{
+            borderRadius:28, padding:"1.5px",
+            background: isGlowFocused
+              ? "linear-gradient(135deg, rgba(0,198,255,0.6), rgba(0,114,255,0.6), rgba(124,58,237,0.5))"
+              : `1px solid ${border}`,
+            transition:"background 0.3s ease",
+            boxShadow: isGlowFocused ? "0 0 18px rgba(0,114,255,0.2)" : "none",
+          }}>
+            <div style={{ background: dark?"rgba(13,21,37,0.96)":"rgba(247,249,255,0.98)", backdropFilter:"blur(20px)", borderRadius:27, padding:"10px 10px 10px 14px", display:"flex", alignItems:"flex-end", gap:8 }}>
+
+              {/* File attach button */}
+              <button onClick={()=>fileRef.current.click()}
+                style={{ width:38, height:38, borderRadius:"50%", border:`1px solid ${pendingFile?"#0072FF":border}`, background: pendingFile?"rgba(0,114,255,0.12)":"transparent", color: pendingFile?"#0072FF":muted, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,114,255,0.12)";e.currentTarget.style.borderColor="#0072FF";e.currentTarget.style.color="#0072FF";}}
+                onMouseLeave={e=>{e.currentTarget.style.background=pendingFile?"rgba(0,114,255,0.12)":"transparent";e.currentTarget.style.borderColor=pendingFile?"#0072FF":border;e.currentTarget.style.color=pendingFile?"#0072FF":muted;}}
+                title="Attach PDF, DOCX or PPTX">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:17, height:17 }}>
+                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                </svg>
+              </button>
+              <input ref={fileRef} type="file" accept=".pdf,.docx,.pptx" style={{ display:"none" }}
+                onChange={e=>{ const f=e.target.files[0]; if(f){ const ok=f.name.endsWith(".pdf")||f.name.endsWith(".docx")||f.name.endsWith(".pptx"); if(!ok){alert("Please upload PDF, DOCX, or PPTX.");return;} setPendingFile(f); } e.target.value=""; }} />
+
+              {/* File chip */}
+              {pendingFile && (
+                <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,114,255,0.12)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:600, color:"#60A5FA", flexShrink:0 }}>
+                  <span>{pendingFile.name.endsWith(".pdf")?"📄":pendingFile.name.endsWith(".docx")?"📝":"📊"}</span>
+                  <span style={{ maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{pendingFile.name}</span>
+                  <span onClick={()=>setPendingFile(null)} style={{ cursor:"pointer", opacity:0.6, fontSize:13, lineHeight:1 }}
+                    onMouseEnter={e=>e.currentTarget.style.color="#EF4444"}
+                    onMouseLeave={e=>e.currentTarget.style.color=""}>✕</span>
                 </div>
-              ))}
+              )}
+
+              {/* Textarea */}
+              <textarea ref={textareaRef} value={chatInput}
+                onChange={e=>{ if(e.target.value.length<=500){ setChatInput(e.target.value); resizeTextarea(); }}}
+                onFocus={()=>setIsGlowFocused(true)}
+                onBlur={()=>{ if(!chatInput.trim()) setIsGlowFocused(false); }}
+                onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();} }}
+                placeholder={user.lang==="sw"?"Ninaweza kukusaidia na nini?":"Can I help you with anything?"}
+                rows={1}
+                style={{ flex:1, background:"transparent", border:"none", outline:"none", color:dark?"#E8EDF5":"#1a1f2e", fontSize:15, fontFamily:"inherit", resize:"none", minHeight:38, maxHeight:160, padding:"8px 4px", lineHeight:1.5, overflowY:"auto", caretColor:"#0072FF" }}
+              />
+
+              {/* Send button */}
+              <button onClick={sendChat} disabled={(!chatInput.trim()&&!pendingFile)||chatStreaming}
+                style={{ width:42, height:42, borderRadius:"50%", border:"none", flexShrink:0, cursor:(!chatInput.trim()&&!pendingFile)||chatStreaming?"not-allowed":"pointer",
+                  background:(!chatInput.trim()&&!pendingFile)||chatStreaming?"rgba(255,255,255,0.08)":"linear-gradient(135deg,#00C6FF,#0072FF)",
+                  display:"flex", alignItems:"center", justifyContent:"center",
+                  boxShadow:(!chatInput.trim()&&!pendingFile)||chatStreaming?"none":"0 4px 14px rgba(0,114,255,0.4)",
+                  transition:"all 0.2s", opacity:(!chatInput.trim()&&!pendingFile)||chatStreaming?0.4:1 }}>
+                {chatStreaming
+                  ? <div style={{ width:16, height:16, border:"2.5px solid rgba(255,255,255,0.35)", borderTopColor:"white", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+                  : <svg viewBox="0 0 24 24" fill="white" style={{ width:18, height:18 }}>
+                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                }
+              </button>
             </div>
-          )}
+          </div>
+
+          {/* Bottom hint */}
+          <div style={{ textAlign:"center", fontSize:10, color:muted, marginTop:6, opacity:0.6 }}>
+            {user.lang==="sw" ? "Shift+Enter kwa mstari mpya · 📎 Attach PDF/DOCX kwa muhtasari kamili" : "Shift+Enter for new line · 📎 Attach PDF/DOCX for full analysis"}
+          </div>
         </div>
       )}
     </div>

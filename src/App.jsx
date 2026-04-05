@@ -74,7 +74,7 @@ function InstallModal({ onClose }) {
             {[
               { icon:"1️⃣", text:'Open this page in Chrome or Edge' },
               { icon:"2️⃣", text:'Look for the install icon (⊕) in the address bar — right side' },
-              { icon:"3️⃣", text:'If you don\'t see it: click the 3-dot menu → "Install ZIMAMOTO AI"' },
+              { icon:"3️⃣", text:"If you don't see it: click the 3-dot menu → 'Install ZIMAMOTO AI'" },
               { icon:"4️⃣", text:'Click "Install" — opens like a real app! 💻' },
             ].map((s,i) => (
               <div key={i} style={{ display:"flex", gap:12, alignItems:"flex-start", marginBottom:12 }}>
@@ -631,16 +631,22 @@ function StudyAI({ user, dark, isMobile, puterReady }) {
     if (!text && !pendingFile) return;
     if (chatStreaming) return;
 
-    // If file attached — run full analysis (with optional question as context)
+    // If file attached — run full analysis directly (don't rely on async state updates)
     if (pendingFile) {
-      await handleFile(pendingFile);
-      // Add user message to chat showing file + question
-      const userMsg = { id:Date.now(), role:"user", text: text ? `${text}\n\n📎 ${pendingFile.name}` : `📎 ${pendingFile.name}` };
+      const f = pendingFile;
+      const userMsg = { id:Date.now(), role:"user", text: text ? `${text}\n\n📎 ${f.name}` : `📎 ${f.name}` };
       setChatMessages(prev => [...prev, userMsg]);
       setChatInput(""); setPendingFile(null);
       if (textareaRef.current) { textareaRef.current.style.height = "auto"; }
-      // Small delay to let extractedText state settle, then process
-      setTimeout(() => process(), 100);
+
+      // Extract text synchronously here, then pass directly into process()
+      let extracted = "";
+      if (f.name.endsWith(".docx")) {
+        try { const buf = await readAsArrayBuffer(f); const res = await mammoth.extractRawText({ arrayBuffer:buf }); extracted = res.value; } catch {}
+      }
+      // Set file state for history saving, then process immediately with direct args
+      setFile(f); setExtractedText(extracted);
+      await process(f, extracted);
       return;
     }
 
@@ -677,20 +683,22 @@ function StudyAI({ user, dark, isMobile, puterReady }) {
     setChatStreaming(false);
   };
 
-  const process = async () => {
-    if (!file) return;
+  const process = async (directFile, directExtracted) => {
+    const activeFile = directFile || file;
+    const activeText = directExtracted || extractedText;
+    if (!activeFile) return;
     setStage("processing"); setStreamPreview("");
     try {
       // ── Extract document text ─────────────────────────────────────────────
       let docText = "";
-      if (file.name.endsWith(".pdf")) {
+      if (activeFile.name.endsWith(".pdf")) {
         setStreamPreview("📖 Reading PDF pages...");
-        docText = await extractPDFText(file);
+        docText = await extractPDFText(activeFile);
         if (!docText.trim()) throw new Error("Could not extract text. PDF may be a scanned image.");
-      } else if (file.name.endsWith(".docx") && extractedText) {
-        docText = extractedText.slice(0, 10000);
+      } else if (activeFile.name.endsWith(".docx") && activeText) {
+        docText = activeText.slice(0, 10000);
       } else {
-        docText = `University-level document titled: "${file.name}"`;
+        docText = `University-level document titled: "${activeFile.name}"`;
       }
 
       // ── CALL 1: Smart Summary (plain text — zero JSON issues) ─────────────
@@ -779,12 +787,12 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
       }
 
       setSummary(summary); setQuestions(questions); setStage("results");
-      setChatMessages(prev => [...prev, { id:Date.now(), role:"ai", text:`✅ Analysis complete! I found **${questions.length} exam questions** and a **6-section smart summary** for **${file?.name || "your document"}**. Tap the tabs below to explore your study pack.` }]);
+      setChatMessages(prev => [...prev, { id:Date.now(), role:"ai", text:`✅ Analysis complete! I found **${questions.length} exam questions** and a **6-section smart summary** for **${activeFile.name}**. Tap the tabs below to explore your study pack.` }]);
 
       // Save to history
       try {
         const existing = JSON.parse(localStorage.getItem("zimamoto_study_history")||"[]");
-        const entry = { id:Date.now(), fileName:file.name, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}), summary, questions };
+        const entry = { id:Date.now(), fileName:activeFile.name, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}), summary, questions };
         const updated = [entry, ...existing.filter(e=>e.fileName!==file.name)].slice(0,15);
         localStorage.setItem("zimamoto_study_history", JSON.stringify(updated));
       } catch {}

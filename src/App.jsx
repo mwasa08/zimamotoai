@@ -27,6 +27,172 @@ function usePWAInstall() {
   return { nativePrompt, installed, install };
 }
 
+
+// ─── AUTH HELPERS ─────────────────────────────────────────────────────────────
+const AUTH_KEY="zimamoto_auth_users", SESSION_KEY="zimamoto_session";
+function getUsers(){try{return JSON.parse(localStorage.getItem(AUTH_KEY)||"[]");}catch{return[];}}
+function saveUsers(u){try{localStorage.setItem(AUTH_KEY,JSON.stringify(u));}catch{}}
+function getSession(){try{return JSON.parse(localStorage.getItem(SESSION_KEY)||"null");}catch{return null;}}
+function saveSession(u){try{localStorage.setItem(SESSION_KEY,JSON.stringify(u));}catch{}}
+function clearSession(){try{localStorage.removeItem(SESSION_KEY);}catch{}}
+function initProfile(name,username,email,method){
+  return{name:name||username,username,email:email||"",registrationMethod:method||"manual",
+    avatar:(name||username).slice(0,2).toUpperCase(),
+    color:["#10B981","#0072FF","#8B5CF6","#F59E0B","#EF4444","#06B6D4"][Math.floor(Math.random()*6)],
+    university:"University of Dar es Salaam",major:"ict",year:"1st Year",
+    theme:"dark",lang:"en",notifications:true,bio:"",phone:"",location:"",accountStatus:"active"};
+}
+
+// ─── REGISTER PAGE ────────────────────────────────────────────────────────────
+function RegisterPage({onRegistered,onGoLogin}){
+  const[form,setForm]=useState({name:"",username:"",email:"",password:"",confirm:""});
+  const[agreed,setAgreed]=useState(false);
+  const[error,setError]=useState("");
+  const f=(k,v)=>setForm(p=>({...p,[k]:v}));
+  const IS={background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:12,color:"#E8EDF5",padding:"12px 16px",fontSize:14,width:"100%",outline:"none",fontFamily:"inherit"};
+
+  const submit=()=>{
+    setError("");
+    if(!form.name.trim()) return setError("Full name is required.");
+    if(!form.username.trim()) return setError("Username is required.");
+    if(!/^[^@]+@[^@]+\.[^@]+$/.test(form.email)) return setError("Valid email required.");
+    if(form.password.length<6) return setError("Password needs 6+ characters.");
+    if(form.password!==form.confirm) return setError("Passwords do not match.");
+    if(!agreed) return setError("Accept Terms & Conditions to continue.");
+    const users=getUsers();
+    if(users.find(u=>u.username?.toLowerCase()===form.username.toLowerCase())) return setError("Username taken.");
+    if(users.find(u=>u.email?.toLowerCase()===form.email.toLowerCase())) return setError("Email already registered.");
+    const nu={...initProfile(form.name.trim(),form.username.trim(),form.email.trim(),"manual"),passwordHash:btoa(form.password)};
+    saveUsers([...users,nu]);saveSession(nu);onRegistered(nu);
+  };
+  const social=(method)=>{
+    const un=method.toLowerCase()+"_"+Date.now().toString().slice(-4);
+    const p=initProfile(method+" User",un,"",method);
+    const users=getUsers();saveUsers([...users,p]);saveSession(p);onRegistered(p);
+  };
+  return(
+    <div style={{minHeight:"100vh",background:"#080C14",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Outfit',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}.ri:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.15);}.rb{transition:all 0.2s;}.rb:hover{transform:translateY(-1px);}.rb:active{transform:scale(0.97);}`}</style>
+      <div style={{position:"fixed",top:"5%",left:"50%",transform:"translateX(-50%)",width:600,height:350,background:"radial-gradient(ellipse,rgba(0,114,255,0.1) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{width:"100%",maxWidth:440,background:"rgba(13,21,37,0.95)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:24,padding:"32px 28px"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{width:52,height:52,background:"linear-gradient(135deg,#00C6FF,#0072FF)",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,margin:"0 auto 12px"}}>🔥</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,fontWeight:800,background:"linear-gradient(135deg,#00C6FF,#0072FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>ZIMAMOTO AI</div>
+          <div style={{fontSize:13,color:"#4A6080",marginTop:4}}>Create your account</div>
+        </div>
+        <div style={{display:"flex",gap:10,marginBottom:20}}>
+          {[{icon:"G",label:"Google",color:"#EA4335",bg:"rgba(234,67,53,0.1)",bd:"rgba(234,67,53,0.25)"},
+            {icon:"f",label:"Facebook",color:"#1877F2",bg:"rgba(24,119,242,0.1)",bd:"rgba(24,119,242,0.25)"}
+          ].map(s=>(
+            <button key={s.label} className="rb" onClick={()=>social(s.label)}
+              style={{flex:1,padding:"11px",background:s.bg,border:`1px solid ${s.bd}`,borderRadius:12,color:s.color,fontWeight:700,fontSize:13,cursor:"pointer",fontFamily:"inherit",display:"flex",alignItems:"center",justifyContent:"center",gap:8}}>
+              <span style={{fontWeight:900,fontSize:16}}>{s.icon}</span> Continue with {s.label}
+            </button>
+          ))}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:20}}>
+          <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}}/>
+          <span style={{fontSize:11,color:"#4A6080"}}>OR</span>
+          <div style={{flex:1,height:1,background:"rgba(255,255,255,0.08)"}}/>
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:12,marginBottom:16}}>
+          {[{k:"name",l:"Full Name",t:"text",p:"e.g. Amina Mohamed"},
+            {k:"username",l:"Username",t:"text",p:"e.g. amina_2024"},
+            {k:"email",l:"Email",t:"email",p:"your@email.com"},
+            {k:"password",l:"Password",t:"password",p:"Min. 6 characters"},
+            {k:"confirm",l:"Confirm Password",t:"password",p:"Repeat password"}
+          ].map(fl=>(
+            <div key={fl.k}>
+              <label style={{fontSize:11,fontWeight:600,color:"#4A6080",display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>{fl.l}</label>
+              <input className="ri" type={fl.t} placeholder={fl.p} value={form[fl.k]} onChange={e=>f(fl.k,e.target.value)} style={{...IS}} onKeyDown={e=>e.key==="Enter"&&submit()}/>
+            </div>
+          ))}
+        </div>
+        <div style={{display:"flex",alignItems:"flex-start",gap:10,marginBottom:16,cursor:"pointer"}} onClick={()=>setAgreed(a=>!a)}>
+          <div style={{width:18,height:18,borderRadius:5,border:`2px solid ${agreed?"#0072FF":"rgba(255,255,255,0.2)"}`,background:agreed?"#0072FF":"transparent",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,marginTop:1,transition:"all 0.2s"}}>
+            {agreed&&<span style={{color:"white",fontSize:11,fontWeight:900}}>✓</span>}
+          </div>
+          <span style={{fontSize:12,color:"#4A6080",lineHeight:1.5}}>I accept the <span style={{color:"#0072FF"}}>Terms &amp; Conditions</span> and <span style={{color:"#0072FF"}}>Privacy Policy</span></span>
+        </div>
+        {error&&<div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#EF4444",marginBottom:14}}>⚠️ {error}</div>}
+        <button className="rb" onClick={submit} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#00C6FF,#0072FF)",border:"none",borderRadius:12,color:"white",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 16px rgba(0,114,255,0.35)"}}>
+          Create Account 🚀
+        </button>
+        <div style={{textAlign:"center",marginTop:18,fontSize:13,color:"#4A6080"}}>
+          Already have an account? <span onClick={onGoLogin} style={{color:"#0072FF",cursor:"pointer",fontWeight:600}}>Sign in</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── LOGIN PAGE ───────────────────────────────────────────────────────────────
+function LoginPage({onLoggedIn,onGoRegister}){
+  const[cred,setCred]=useState({id:"",password:""});
+  const[error,setError]=useState("");
+  const[showForgot,setShowForgot]=useState(false);
+  const[forgotEmail,setForgotEmail]=useState("");
+  const[forgotMsg,setForgotMsg]=useState("");
+  const IS={background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:12,color:"#E8EDF5",padding:"12px 16px",fontSize:14,width:"100%",outline:"none",fontFamily:"inherit"};
+
+  const login=()=>{
+    setError("");
+    const users=getUsers();
+    const m=users.find(u=>u.username?.toLowerCase()===cred.id.trim().toLowerCase()||u.name?.toLowerCase()===cred.id.trim().toLowerCase());
+    if(!m) return setError("User not found. Check your username or name.");
+    if(m.registrationMethod!=="manual"||!m.passwordHash){saveSession(m);onLoggedIn(m);return;}
+    if(m.passwordHash!==btoa(cred.password)) return setError("Incorrect password.");
+    saveSession(m);onLoggedIn(m);
+  };
+
+  return(
+    <div style={{minHeight:"100vh",background:"#080C14",display:"flex",alignItems:"center",justifyContent:"center",padding:20,fontFamily:"'Outfit',sans-serif"}}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap');*{box-sizing:border-box;margin:0;padding:0;}.ri:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.15);}.rb{transition:all 0.2s;}.rb:hover{transform:translateY(-1px);}.rb:active{transform:scale(0.97);}`}</style>
+      <div style={{position:"fixed",top:"5%",left:"50%",transform:"translateX(-50%)",width:600,height:350,background:"radial-gradient(ellipse,rgba(0,114,255,0.1) 0%,transparent 70%)",pointerEvents:"none"}}/>
+      <div style={{width:"100%",maxWidth:420,background:"rgba(13,21,37,0.95)",border:"1px solid rgba(255,255,255,0.08)",borderRadius:24,padding:"32px 28px"}}>
+        <div style={{textAlign:"center",marginBottom:28}}>
+          <div style={{width:52,height:52,background:"linear-gradient(135deg,#00C6FF,#0072FF)",borderRadius:14,display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,margin:"0 auto 12px"}}>🔥</div>
+          <div style={{fontFamily:"'Syne',sans-serif",fontSize:24,fontWeight:800,background:"linear-gradient(135deg,#00C6FF,#0072FF)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Welcome Back</div>
+          <div style={{fontSize:13,color:"#4A6080",marginTop:4}}>Sign in to ZIMAMOTO AI</div>
+        </div>
+        {!showForgot?(<>
+          <div style={{display:"flex",flexDirection:"column",gap:14,marginBottom:16}}>
+            {[{id:"id",l:"Username or Full Name",t:"text",p:"Your username or full name"},
+              {id:"password",l:"Password",t:"password",p:"Your password"}
+            ].map(fl=>(
+              <div key={fl.id}>
+                <label style={{fontSize:11,fontWeight:600,color:"#4A6080",display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>{fl.l}</label>
+                <input className="ri" type={fl.t} placeholder={fl.p} value={cred[fl.id]} onChange={e=>setCred(p=>({...p,[fl.id]:e.target.value}))} style={{...IS}} onKeyDown={e=>e.key==="Enter"&&login()}/>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:"right",marginBottom:16}}>
+            <span onClick={()=>setShowForgot(true)} style={{fontSize:12,color:"#0072FF",cursor:"pointer",fontWeight:600}}>Forgot Password?</span>
+          </div>
+          {error&&<div style={{background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:10,padding:"10px 14px",fontSize:13,color:"#EF4444",marginBottom:14}}>⚠️ {error}</div>}
+          <button className="rb" onClick={login} style={{width:"100%",padding:"14px",background:"linear-gradient(135deg,#00C6FF,#0072FF)",border:"none",borderRadius:12,color:"white",fontWeight:800,fontSize:15,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 4px 16px rgba(0,114,255,0.35)"}}>
+            Sign In 🔥
+          </button>
+          <div style={{textAlign:"center",marginTop:18,fontSize:13,color:"#4A6080"}}>
+            No account? <span onClick={onGoRegister} style={{color:"#0072FF",cursor:"pointer",fontWeight:600}}>Register here</span>
+          </div>
+        </>):(
+          <div>
+            <button onClick={()=>{setShowForgot(false);setForgotMsg("");}} style={{background:"none",border:"none",color:"#4A6080",cursor:"pointer",fontSize:13,marginBottom:16}}>← Back</button>
+            <label style={{fontSize:11,fontWeight:600,color:"#4A6080",display:"block",marginBottom:5,textTransform:"uppercase",letterSpacing:"0.06em"}}>Recovery Email</label>
+            <input className="ri" type="email" placeholder="Email used at registration" value={forgotEmail} onChange={e=>setForgotEmail(e.target.value)} style={{...IS,marginBottom:14}}/>
+            {forgotMsg&&<div style={{background:forgotMsg.includes("found")?"rgba(16,185,129,0.1)":"rgba(239,68,68,0.1)",border:`1px solid ${forgotMsg.includes("found")?"rgba(16,185,129,0.3)":"rgba(239,68,68,0.3)"}`,borderRadius:10,padding:"10px 14px",fontSize:12,color:forgotMsg.includes("found")?"#10B981":"#EF4444",marginBottom:14}}>{forgotMsg}</div>}
+            <button className="rb" onClick={()=>{const m=getUsers().find(u=>u.email?.toLowerCase()===forgotEmail.trim().toLowerCase());setForgotMsg(m?"Account found. This is a demo — re-register if you forgot your password.":"No account with that email.");}}
+              style={{width:"100%",padding:"13px",background:"linear-gradient(135deg,#00C6FF,#0072FF)",border:"none",borderRadius:12,color:"white",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
+              Send Recovery Email
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Install Modal — always works on any platform ──────────────────────────────
 function InstallModal({ onClose }) {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -241,23 +407,14 @@ function useIsMobile() {
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 export default function ZimamoApp() {
   const [page, setPage] = useState("home");
-  const [user, setUser] = useState(() => {
-    try {
-      const saved = localStorage.getItem("zimamoto_user");
-      if (saved) return JSON.parse(saved);
-    } catch {}
-    return {
-      name: "MWASAMBUGHI SAMWEL ELIA", avatar: "ME", color: "#10B981",
-      university: "University of Dar es Salaam", major: "ict",
-      year: "3rd Year", theme: "dark", lang: "sw", notifications: true,
-    };
-  });
-  const [blogMajor, setBlogMajor] = useState(null);
-  // Auto-persist user changes to localStorage
-  useEffect(() => {
-    try { localStorage.setItem("zimamoto_user", JSON.stringify(user)); } catch {}
-  }, [user]);
-  const [showMajorPicker, setShowMajorPicker] = useState(false);
+  const[authStage,setAuthStage]=useState(()=>getSession()?"app":getUsers().length===0?"register":"login");
+  const[user,setUser]=useState(()=>getSession()||{name:"Student",avatar:"ST",color:"#10B981",university:"University of Dar es Salaam",major:"ict",year:"1st Year",theme:"dark",lang:"en",notifications:true});
+  const handleRegistered=(u)=>{setUser(u);setAuthStage("app");};
+  const handleLoggedIn=(u)=>{setUser(u);setAuthStage("app");};
+  const handleLogout=()=>{clearSession();setAuthStage("login");};
+  useEffect(()=>{try{localStorage.setItem("zimamoto_user",JSON.stringify(user));if(authStage==="app")saveSession(user);}catch{}},[user,authStage]);
+  if(authStage==="register") return <RegisterPage onRegistered={handleRegistered} onGoLogin={()=>setAuthStage("login")}/>;
+  if(authStage==="login") return <LoginPage onLoggedIn={handleLoggedIn} onGoRegister={()=>setAuthStage("register")}/>;
   const dark = user.theme === "dark";
   const isMobile = useIsMobile();
   const puterReady = useApiReady();
@@ -268,16 +425,13 @@ export default function ZimamoApp() {
     else { setShowInstallModal(true); }
   };
 
-  const navItems = [
-    { id: "home", icon: "🤖", label: "Study AI" },
-    { id: "discuss", icon: "🗣️", label: "Discussion" },
-    { id: "blog", icon: "📖", label: "Blog" },
-    { id: "advice", icon: "💡", label: "Advice" },
-    { id: "settings", icon: "⚙️", label: "Settings" },
+  const navItems=[
+    {id:"home",icon:"🤖",label:"Study AI"},
+    {id:"discuss",icon:"🗣️",label:"Discussion"},
+    {id:"advice",icon:"💡",label:"Advice"},
+    {id:"settings",icon:"⚙️",label:"Settings"},
   ];
-
-  const handleBlogNav = () => { if (!blogMajor) { setShowMajorPicker(true); return; } setPage("blog"); };
-  const handleNav = (id) => { id === "blog" ? handleBlogNav() : setPage(id); };
+  const handleNav=(id)=>setPage(id);
 
   const SIDEBAR_W = 240;
   const bg = dark ? "#080C14" : "#F0F4FF";
@@ -386,9 +540,8 @@ export default function ZimamoApp() {
           )}
           {page==="home"     && <StudyAI user={user} dark={dark} isMobile={isMobile} puterReady={puterReady} />}
           {page==="discuss"  && <DiscussPage user={user} dark={dark} isMobile={isMobile} puterReady={puterReady} />}
-          {page==="blog"     && <BlogPage user={user} dark={dark} major={blogMajor} onChangeMajor={()=>setShowMajorPicker(true)} isMobile={isMobile} />}
           {page==="advice"   && <AdvicePage user={user} dark={dark} isMobile={isMobile} puterReady={puterReady} />}
-          {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} />}
+          {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} onLogout={handleLogout} />}
         </div>
       </main>
 
@@ -408,25 +561,6 @@ export default function ZimamoApp() {
       )}
 
       {/* Major Picker Modal */}
-      {showMajorPicker && (
-        <div className="modal-overlay" onClick={() => setShowMajorPicker(false)}>
-          <div className="modal-box" onClick={e => e.stopPropagation()}>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }}>Choose Your Field</div>
-            <p style={{ fontSize:13, color:muted, marginBottom:20 }}>Select your academic field to see the most relevant content</p>
-            <div style={{ display:"grid", gridTemplateColumns: isMobile?"1fr 1fr":"1fr 1fr 1fr", gap:10 }}>
-              {MAJORS.map(m => (
-                <button key={m.id} onClick={() => { setBlogMajor(m.id); setShowMajorPicker(false); setPage("blog"); }}
-                  style={{ background:`${m.color}15`, border:`1.5px solid ${m.color}40`, borderRadius:12, padding:"12px 10px", cursor:"pointer", textAlign:"left", transition:"all 0.2s", outline:"none" }}
-                  onMouseEnter={e => { e.currentTarget.style.borderColor=m.color; e.currentTarget.style.background=`${m.color}28`; }}
-                  onMouseLeave={e => { e.currentTarget.style.borderColor=`${m.color}40`; e.currentTarget.style.background=`${m.color}15`; }}>
-                  <div style={{ fontSize:22, marginBottom:5 }}>{m.icon}</div>
-                  <div style={{ fontSize:11, fontWeight:700, color:m.color, lineHeight:1.3 }}>{m.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -1445,7 +1579,7 @@ useEffect(() => {
 }
 
 // ─── SETTINGS PAGE ────────────────────────────────────────────────────────────
-function SettingsPage({ user, setUser, dark, isMobile }) {
+function SettingsPage({ user, setUser, dark, isMobile, onLogout }) {
   const [saved, setSaved] = useState(false);
   const bg = dark?"#0D1525":"#fff";
   const border = dark?"#1E2D4A":"#DDE5F5";
@@ -1504,7 +1638,10 @@ function SettingsPage({ user, setUser, dark, isMobile }) {
         {saved?"✅ Changes Saved!":"Save Changes"}
       </button>
 
-      <div style={{ textAlign:"center", marginTop:30, color:muted, fontSize:12 }}>
+      <button onClick={onLogout} style={{width:"100%",padding:"13px",marginTop:12,background:"rgba(239,68,68,0.1)",border:"1px solid rgba(239,68,68,0.3)",borderRadius:12,color:"#EF4444",fontWeight:700,fontSize:14,cursor:"pointer",fontFamily:"inherit"}}>
+        🚪 Sign Out
+      </button>
+      <div style={{ textAlign:"center", marginTop:24, color:muted, fontSize:12 }}>
         <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
         <div>©Mwasa Inc 2026 · Built for African Students</div>
         <div style={{ marginTop:4, opacity:0.6 }}>Version 1.1 · powered by Groq</div>

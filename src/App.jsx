@@ -502,7 +502,7 @@ function ZimamoApp() {
             <div style={{ width:38, height:38, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🔥</div>
             <div>
               <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
-              <div style={{ fontSize:10, color:muted }}>Study AI · v1.1</div>
+              <div style={{ fontSize:10, color:muted }}>Study AI · v2.0</div>
             </div>
           </div>
 
@@ -562,8 +562,7 @@ function ZimamoApp() {
           {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} />}
         </div>
       </main>
-
-
+}
 
       {/* ── INSTALL MODAL ── */}
       {showInstallModal && <InstallModal onClose={() => setShowInstallModal(false)} />}
@@ -1628,7 +1627,7 @@ function SettingsPage({ user, setUser, dark, isMobile, onSignOut }) {
       <div style={{ textAlign:"center", marginTop:24, color:muted, fontSize:12 }}>
         <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
         <div>©Mwasa Inc 2026 · Built for African Students</div>
-        <div style={{ marginTop:4, opacity:0.6 }}>Version 1.1 · powered by Groq</div>
+        <div style={{ marginTop:4, opacity:0.6 }}>Version 2.0 · powered by Groq</div>
       </div>
       <Analytics />
     </div>

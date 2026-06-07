@@ -1489,59 +1489,62 @@ useEffect(() => {
         </div>
       )}
 
-      {view==="feed" && (
-        <div>
-  <div style={{ background:"rgba(0,114,255,0.06)", border:"1px solid rgba(0,114,255,0.2)", borderRadius:14, padding:14, marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
-  <div style={{ flex:1 }}>
-    <div style={{ fontSize:12, fontWeight:700, color:"#0072FF" }}>⚡ ZIMAMOTO AI</div>
-  </div>
-  <button onClick={() => setShowHistory(!showHistory)} style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:8, padding:"5px 10px", fontSize:11, color:"#0072FF", cursor:"pointer", fontWeight:600, marginRight:6 }}>
-    🕒 History
-  </button>
-  <button onClick={startNewChat} style={{ background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)", borderRadius:8, padding:"5px 10px", fontSize:11, color:"#10B981", cursor:"pointer", fontWeight:600, marginRight:6 }}>
-    + New
-  </button>
-  <div className="puter-badge">
-    <><span style={{ fontSize:8 }}>●</span> Ready</>
-  </div>
-</div>
-
-{/* History Panel */}
-{showHistory && (
-  <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, marginBottom:16, overflow:"hidden" }}>
-    <div style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, fontWeight:700, fontSize:13, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
-      <span>🕒 Past Conversations</span>
-      <button onClick={() => setShowHistory(false)} style={{ background:"none", border:"none", color:muted, cursor:"pointer", fontSize:18 }}>×</button>
-    </div>
-    {historyList.length === 0 ? (
-      <div style={{ padding:"24px 16px", textAlign:"center", color:muted, fontSize:13 }}>No saved chats yet. Start chatting!</div>
-    ) : (
-      historyList.map(session => (
-        <div key={session.id} onClick={() => openSession(session)}
-          style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", transition:"background 0.2s", display:"flex", alignItems:"center", gap:10 }}
-          onMouseEnter={e => e.currentTarget.style.background="rgba(0,114,255,0.06)"}
-          onMouseLeave={e => e.currentTarget.style.background="transparent"}>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{session.title}</div>
-            <div style={{ fontSize:11, color:muted, marginTop:2 }}>{session.date} · {session.messages.length} messages</div>
+      {/* ── BLOG FEED VIEW ── */}
+      {view==="ai" && (
+        <div className="fade-up">
+          {/* AI header bar */}
+          <div style={{ background:"rgba(0,114,255,0.06)", border:"1px solid rgba(0,114,255,0.2)", borderRadius:14, padding:14, marginBottom:16, display:"flex", alignItems:"center", gap:10 }}>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:12, fontWeight:700, color:"#0072FF" }}>⚡ ZIMAMOTO AI</div>
+            </div>
+            <button onClick={()=>setShowHistory(!showHistory)} style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:8, padding:"5px 10px", fontSize:11, color:"#0072FF", cursor:"pointer", fontWeight:600, marginRight:6 }}>
+              🕒 History
+            </button>
+            <button onClick={startNewChat} style={{ background:"rgba(16,185,129,0.1)", border:"1px solid rgba(16,185,129,0.3)", borderRadius:8, padding:"5px 10px", fontSize:11, color:"#10B981", cursor:"pointer", fontWeight:600, marginRight:6 }}>
+              + New
+            </button>
+            <div className="puter-badge"><span style={{ fontSize:8 }}>●</span> Ready</div>
           </div>
-          <span style={{ fontSize:11, color:"#0072FF", fontWeight:700, flexShrink:0 }}>Open →</span>
-        </div>
-      ))
-    )}
-  </div>
-)}
+
+          {/* History panel */}
+          {showHistory && (
+            <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, marginBottom:16, overflow:"hidden" }}>
+              <div style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, fontWeight:700, fontSize:13, display:"flex", justifyContent:"space-between", alignItems:"center" }}>
+                <span>🕒 Past Conversations</span>
+                <button onClick={()=>setShowHistory(false)} style={{ background:"none", border:"none", color:muted, cursor:"pointer", fontSize:18 }}>×</button>
+              </div>
+              {historyList.length === 0
+                ? <div style={{ padding:"24px 16px", textAlign:"center", color:muted, fontSize:13 }}>No saved chats yet. Start chatting!</div>
+                : historyList.map(session=>(
+                  <div key={session.id} onClick={()=>openSession(session)}
+                    style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", transition:"background 0.2s", display:"flex", alignItems:"center", gap:10 }}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(0,114,255,0.06)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{session.title}</div>
+                      <div style={{ fontSize:11, color:muted, marginTop:2 }}>{session.date} · {session.messages.length} messages</div>
+                    </div>
+                    <span style={{ fontSize:11, color:"#0072FF", fontWeight:700, flexShrink:0 }}>Open →</span>
+                  </div>
+                ))
+              }
+            </div>
+          )}
+
+          {/* Chat messages */}
           <div style={{ display:"flex", flexDirection:"column", gap:12, marginBottom:16, maxHeight:isMobile?380:520, overflowY:"auto", padding:"4px 0" }}>
             {aiMessages.map((msg,i)=>(
-              <div key={msg.id||i} style={{ display:"flex", gap:10, flexDirection: msg.role==="user"?"row-reverse":"row" }}>
-                <div style={{ width:34, height:34, borderRadius:"50%", background: msg.role==="user"?`${user.color}22`:"linear-gradient(135deg,#00C6FF,#0072FF)", border: msg.role==="user"?`2px solid ${user.color}55`:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, color: msg.role==="user"?user.color:"white", flexShrink:0 }}>{msg.role==="user"?user.avatar:"ZI"}</div>
-               <div style={{ maxWidth:isMobile?"82%":"70%", background: msg.role==="user"?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, border: msg.role==="user"?"none":`1px solid ${border}`, borderRadius: msg.role==="user"?"14px 4px 14px 14px":"4px 14px 14px 14px", padding:"10px 14px", color: msg.role==="user"?"white":(dark?"#CBD5E1":"#374151"), minHeight:42 }}>
-  {msg.text ? <MarkdownText text={msg.text} isUser={msg.role==="user"} /> : (msg.streaming && <StreamDots />)}
-</div>
+              <div key={msg.id||i} style={{ display:"flex", gap:10, flexDirection:msg.role==="user"?"row-reverse":"row" }}>
+                <div style={{ width:34, height:34, borderRadius:"50%", background:msg.role==="user"?`${user.color}22`:"linear-gradient(135deg,#00C6FF,#0072FF)", border:msg.role==="user"?`2px solid ${user.color}55`:"none", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, color:msg.role==="user"?user.color:"white", flexShrink:0 }}>{msg.role==="user"?user.avatar:"ZI"}</div>
+                <div style={{ maxWidth:isMobile?"82%":"70%", background:msg.role==="user"?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, border:msg.role==="user"?"none":`1px solid ${border}`, borderRadius:msg.role==="user"?"14px 4px 14px 14px":"4px 14px 14px 14px", padding:"10px 14px", color:msg.role==="user"?"white":(dark?"#CBD5E1":"#374151"), minHeight:42 }}>
+                  {msg.text ? <MarkdownText text={msg.text} isUser={msg.role==="user"} /> : (msg.streaming && <StreamDots />)}
+                </div>
               </div>
             ))}
             <div ref={aiEndRef} />
           </div>
+
+          {/* Input */}
           <div style={{ display:"flex", gap:8, marginBottom:12 }}>
             <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder="Niulize chochote / Ask me anything..." value={aiInput} onChange={e=>setAiInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendAi()} />
             <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} disabled={aiStreaming} onClick={sendAi}>↑</button>

@@ -316,7 +316,7 @@ function OnboardingPage({ user, onComplete }) {
   const handleFinish = () => {
     const updated = { ...user, ...form };
     localStorage.setItem("zimamoto_user", JSON.stringify(updated));
-    localStorage.setItem(G_SESSION_KEY, JSON.stringify(updated));
+    sessionStorage.setItem(G_SESSION_KEY, JSON.stringify(updated));
     localStorage.setItem(ONBOARDING_KEY, "done");
     onComplete(updated);
   };
@@ -471,11 +471,11 @@ function OnboardingPage({ user, onComplete }) {
 // Google Sign-In screen. ZimamoApp itself is never modified.
 function GoogleAuthGate({ children }) {
   const [session, setSession] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(G_SESSION_KEY) || "null"); } catch { return null; }
+    try { return JSON.parse(sessionStorage.getItem(G_SESSION_KEY) || "null"); } catch { return null; }
   });
   const [needsOnboarding, setNeedsOnboarding] = useState(() => {
     const done = localStorage.getItem(ONBOARDING_KEY);
-    const sess = (() => { try { return JSON.parse(localStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
+    const sess = (() => { try { return JSON.parse(sessionStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
     return sess && !done;
   });
 
@@ -518,7 +518,7 @@ function GoogleAuthGate({ children }) {
       const googleData = decodeGoogleJWT(response.credential);
       if (!googleData?.sub) throw new Error("Invalid Google response.");
       const profile = googleUserToProfile(googleData);
-      localStorage.setItem(G_SESSION_KEY, JSON.stringify(profile));
+      sessionStorage.setItem(G_SESSION_KEY, JSON.stringify(profile));
       localStorage.setItem("zimamoto_user", JSON.stringify(profile));
       const alreadyOnboarded = localStorage.getItem(ONBOARDING_KEY);
       if (!alreadyOnboarded) setNeedsOnboarding(true);
@@ -530,7 +530,7 @@ function GoogleAuthGate({ children }) {
   function handleLogin() {
     setError("");
     // Check if user has previously signed up (session exists in storage)
-    const stored = (() => { try { return JSON.parse(localStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
+    const stored = (() => { try { return JSON.parse(sessionStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
     if (!stored) {
       setError("No account found. Please Sign up first.");
       return;
@@ -539,7 +539,7 @@ function GoogleAuthGate({ children }) {
     setWelcomeName(stored.name || "Student");
     setScreen("welcome");
     setTimeout(() => {
-      localStorage.setItem(G_SESSION_KEY, JSON.stringify(stored));
+      sessionStorage.setItem(G_SESSION_KEY, JSON.stringify(stored));
       setSession(stored);
     }, 2200);
   }
@@ -548,7 +548,7 @@ function GoogleAuthGate({ children }) {
   useEffect(() => {
     window.__zimaSignOut = () => {
       if (window.google?.accounts?.id) window.google.accounts.id.disableAutoSelect();
-      localStorage.removeItem(G_SESSION_KEY);
+      sessionStorage.removeItem(G_SESSION_KEY);
       setSession(null); setScreen("landing"); setError("");
     };
     return () => { delete window.__zimaSignOut; };

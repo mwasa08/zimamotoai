@@ -529,19 +529,22 @@ function GoogleAuthGate({ children }) {
 
   function handleLogin() {
     setError("");
-    // Check if user has previously signed up (session exists in storage)
-    const stored = (() => { try { return JSON.parse(sessionStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
-    if (!stored) {
+    // Always read from localStorage — it persists after tab close.
+    // sessionStorage is cleared on close so we never check it here.
+    const stored = (() => {
+      try { return JSON.parse(localStorage.getItem("zimamoto_user")||"null"); } catch { return null; }
+    })();
+    if (!stored || !stored.googleId) {
       setError("No account found. Please Sign up first.");
       return;
     }
-    // Show welcome back screen briefly, then enter app
+    // Restore session into sessionStorage and show welcome back
     setWelcomeName(stored.name || "Student");
     setScreen("welcome");
     setTimeout(() => {
       sessionStorage.setItem(G_SESSION_KEY, JSON.stringify(stored));
       setSession(stored);
-    }, 2200);
+    }, 2000);
   }
 
   // Sign-out exposed globally for Settings page

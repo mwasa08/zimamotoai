@@ -461,7 +461,7 @@ function ZimamoApp() {
     <div style={{ fontFamily:"'Outfit','Segoe UI',sans-serif", background:bg, minHeight:"100vh", color: dark?"#E8EDF5":"#1a1f2e", display:"flex", flexDirection: isMobile?"column":"row", position:"relative", overflow:"hidden" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0;}
+        *{box-sizing:border-box;margin:0;padding:0;} html,body,#root{width:100%;min-height:100vh;overflow-x:hidden;}
         ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2a3a5c;border-radius:4px;}
         textarea,input,select{font-family:inherit;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
@@ -597,8 +597,6 @@ function ZimamoApp() {
           ))}
         </div>
       )}
-
-      {/* Major Picker Modal */}
     </div>
   );
 }

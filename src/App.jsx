@@ -355,7 +355,7 @@ function GoogleAuthGate({ children }) {
 
   // ── Not signed in — show Google Sign-In screen ────────────────────────────
   return (
-    <div style={{ minHeight:"100vh", background:"#080C14", display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"'Outfit',sans-serif" }}>
+    <div style={{ minHeight:"100vh", width:"100vw", maxWidth:"100%", background:"#080C14", display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0 }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
@@ -597,6 +597,9 @@ function ZimamoApp() {
           ))}
         </div>
       )}
+
+      {/* Major Picker Modal */}
+
     </div>
   );
 }

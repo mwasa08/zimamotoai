@@ -279,6 +279,192 @@ function googleUserToProfile(googleData) {
   };
 }
 
+
+const ONBOARDING_KEY = "zimamoto_onboarding_done";
+
+// ─── ONBOARDING WIZARD ────────────────────────────────────────────────────────
+function OnboardingPage({ user, onComplete }) {
+  const [step, setStep] = useState(1);
+  const TOTAL = 5;
+  const [form, setForm] = useState({
+    name:       user?.name || "",
+    university: user?.university || "",
+    major:      user?.major || "ict",
+    gender:     user?.gender || "",
+    year:       user?.year || "1st Year",
+    theme:      user?.theme || "dark",
+  });
+  const f = (k,v) => setForm(p=>({...p,[k]:v}));
+
+  const YEARS = ["1st Year","2nd Year","3rd Year","4th Year","5th Year","Postgraduate"];
+  const GENDERS = [
+    {id:"male",   label:"Male",   icon:"👨"},
+    {id:"female", label:"Female", icon:"👩"},
+    {id:"other",  label:"Other",  icon:"🧑"},
+    {id:"prefer_not", label:"Prefer not to say", icon:"🤫"},
+  ];
+
+  const canNext = () => {
+    if (step===1) return form.name.trim().length > 0;
+    if (step===2) return form.university.trim().length > 0;
+    if (step===3) return form.major;
+    if (step===4) return form.gender;
+    if (step===5) return form.year;
+    return true;
+  };
+
+  const handleFinish = () => {
+    const updated = { ...user, ...form };
+    localStorage.setItem("zimamoto_user", JSON.stringify(updated));
+    localStorage.setItem(G_SESSION_KEY, JSON.stringify(updated));
+    localStorage.setItem(ONBOARDING_KEY, "done");
+    onComplete(updated);
+  };
+
+  const dark = form.theme === "dark";
+  const bg   = dark ? "#080F1E" : "#F0F4FF";
+  const card = dark ? "rgba(13,21,37,0.95)" : "#ffffff";
+  const text = dark ? "#E8EDF5" : "#1a1f2e";
+  const muted= dark ? "#4A6080" : "#7A8EB0";
+  const bdr  = dark ? "rgba(255,255,255,0.08)" : "#DDE5F5";
+
+  const IS = {
+    background: dark?"rgba(255,255,255,0.05)":"#F7F9FF",
+    border: `1px solid ${bdr}`,
+    borderRadius:12, color:text, padding:"13px 16px",
+    fontSize:15, width:"100%", outline:"none", fontFamily:"inherit",
+    transition:"border-color 0.2s",
+  };
+
+  return (
+    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 20px", fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, overflowY:"auto" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} .ob-input:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.12);} .ob-btn{transition:all 0.2s;} .ob-btn:hover{transform:translateY(-1px);} .ob-btn:active{transform:scale(0.97);}  @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+
+      <div style={{ position:"fixed", top:"5%", left:"50%", transform:"translateX(-50%)", width:"70vw", height:"40vh", background:"radial-gradient(ellipse,rgba(0,114,255,0.08) 0%,transparent 70%)", pointerEvents:"none" }} />
+
+      <div style={{ width:"100%", maxWidth:500, position:"relative", zIndex:1 }}>
+
+        {/* Logo */}
+        <div style={{ textAlign:"center", marginBottom:28 }}>
+          <div style={{ width:52, height:52, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, margin:"0 auto 10px", boxShadow:"0 6px 20px rgba(0,114,255,0.3)" }}>🔥</div>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Set up your profile</div>
+          <div style={{ fontSize:13, color:muted, marginTop:4 }}>Takes less than a minute</div>
+        </div>
+
+        {/* Progress bar */}
+        <div style={{ display:"flex", gap:5, marginBottom:24 }}>
+          {Array.from({length:TOTAL},(_,i)=>(
+            <div key={i} style={{ flex:1, height:4, borderRadius:4, background:i<step?"linear-gradient(90deg,#00C6FF,#0072FF)":dark?"rgba(255,255,255,0.08)":"#DDE5F5", transition:"background 0.3s" }} />
+          ))}
+        </div>
+
+        {/* Card */}
+        <div style={{ background:card, border:`1px solid ${bdr}`, borderRadius:22, padding:"28px 26px", animation:"fadeSlide 0.3s ease" }} key={step}>
+
+          {/* Step 1 — Name */}
+          {step===1 && (<>
+            <div style={{ fontSize:22, fontWeight:800, color:text, marginBottom:6 }}>👋 What's your name?</div>
+            <div style={{ fontSize:13, color:muted, marginBottom:20 }}>We pre-filled it from Google. Edit if needed.</div>
+            <label style={{ fontSize:11, fontWeight:700, color:muted, textTransform:"uppercase", letterSpacing:"0.07em", display:"block", marginBottom:6 }}>Full Name</label>
+            <input className="ob-input" type="text" value={form.name} onChange={e=>f("name",e.target.value)} placeholder="Your full name" style={{...IS}} onKeyDown={e=>e.key==="Enter"&&canNext()&&setStep(2)} autoFocus />
+          </>)}
+
+          {/* Step 2 — University */}
+          {step===2 && (<>
+            <div style={{ fontSize:22, fontWeight:800, color:text, marginBottom:6 }}>🏫 Your university?</div>
+            <div style={{ fontSize:13, color:muted, marginBottom:20 }}>Enter your university or institution name.</div>
+            <label style={{ fontSize:11, fontWeight:700, color:muted, textTransform:"uppercase", letterSpacing:"0.07em", display:"block", marginBottom:6 }}>University</label>
+            <input className="ob-input" type="text" value={form.university} onChange={e=>f("university",e.target.value)} placeholder="e.g. University of Dar es Salaam" style={{...IS}} onKeyDown={e=>e.key==="Enter"&&canNext()&&setStep(3)} autoFocus />
+          </>)}
+
+          {/* Step 3 — Course / Major */}
+          {step===3 && (<>
+            <div style={{ fontSize:22, fontWeight:800, color:text, marginBottom:6 }}>📚 Your field of study?</div>
+            <div style={{ fontSize:13, color:muted, marginBottom:20 }}>Choose the category that fits your course.</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
+              {MAJORS.map(m=>{
+                const sel = form.major===m.id;
+                return (
+                  <button key={m.id} className="ob-btn" onClick={()=>f("major",m.id)}
+                    style={{ padding:"12px 10px", background:sel?`${m.color}22`:dark?"rgba(255,255,255,0.03)":"#F7F9FF", border:`2px solid ${sel?m.color:bdr}`, borderRadius:12, cursor:"pointer", textAlign:"left", fontFamily:"inherit", transition:"all 0.2s" }}>
+                    <div style={{ fontSize:18, marginBottom:4 }}>{m.icon}</div>
+                    <div style={{ fontWeight:600, fontSize:12, color:sel?m.color:text, lineHeight:1.3 }}>{m.label}</div>
+                  </button>
+                );
+              })}
+            </div>
+          </>)}
+
+          {/* Step 4 — Gender */}
+          {step===4 && (<>
+            <div style={{ fontSize:22, fontWeight:800, color:text, marginBottom:6 }}>🧑 Your gender?</div>
+            <div style={{ fontSize:13, color:muted, marginBottom:20 }}>This helps us personalise your experience.</div>
+            <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+              {GENDERS.map(g=>{
+                const sel = form.gender===g.id;
+                return (
+                  <button key={g.id} className="ob-btn" onClick={()=>f("gender",g.id)}
+                    style={{ padding:"14px 18px", background:sel?"rgba(0,114,255,0.12)":dark?"rgba(255,255,255,0.03)":"#F7F9FF", border:`2px solid ${sel?"#0072FF":bdr}`, borderRadius:14, cursor:"pointer", display:"flex", alignItems:"center", gap:12, fontFamily:"inherit", transition:"all 0.2s" }}>
+                    <span style={{ fontSize:22 }}>{g.icon}</span>
+                    <span style={{ fontWeight:600, fontSize:15, color:sel?"#0072FF":text }}>{g.label}</span>
+                    {sel && <span style={{ marginLeft:"auto", color:"#0072FF", fontWeight:800, fontSize:18 }}>✓</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </>)}
+
+          {/* Step 5 — Year + Theme */}
+          {step===5 && (<>
+            <div style={{ fontSize:22, fontWeight:800, color:text, marginBottom:6 }}>🎓 Almost done!</div>
+            <div style={{ fontSize:13, color:muted, marginBottom:20 }}>Year of study and your preferred theme.</div>
+
+            <label style={{ fontSize:11, fontWeight:700, color:muted, textTransform:"uppercase", letterSpacing:"0.07em", display:"block", marginBottom:6 }}>Year of Study</label>
+            <select value={form.year} onChange={e=>f("year",e.target.value)} style={{ ...IS, marginBottom:20, cursor:"pointer" }}>
+              {YEARS.map(y=><option key={y} value={y}>{y}</option>)}
+            </select>
+
+            <label style={{ fontSize:11, fontWeight:700, color:muted, textTransform:"uppercase", letterSpacing:"0.07em", display:"block", marginBottom:10 }}>Theme</label>
+            <div style={{ display:"flex", gap:10 }}>
+              {[{id:"dark",label:"🌙 Dark"},{id:"light",label:"☀️ Light"}].map(t=>(
+                <button key={t.id} className="ob-btn" onClick={()=>f("theme",t.id)}
+                  style={{ flex:1, padding:"14px", background:form.theme===t.id?"linear-gradient(135deg,#00C6FF,#0072FF)":dark?"rgba(255,255,255,0.05)":"#F7F9FF", border:`2px solid ${form.theme===t.id?"#0072FF":bdr}`, borderRadius:14, cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:15, color:form.theme===t.id?"white":text, transition:"all 0.2s" }}>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </>)}
+
+        </div>
+
+        {/* Navigation buttons */}
+        <div style={{ display:"flex", gap:10, marginTop:16 }}>
+          {step > 1 && (
+            <button className="ob-btn" onClick={()=>setStep(s=>s-1)}
+              style={{ flex:1, padding:"14px", background:dark?"rgba(255,255,255,0.06)":"#EEF2FF", border:`1px solid ${bdr}`, borderRadius:14, cursor:"pointer", fontFamily:"inherit", fontWeight:700, fontSize:15, color:muted }}>
+              ← Back
+            </button>
+          )}
+          {step < TOTAL ? (
+            <button className="ob-btn" onClick={()=>canNext()&&setStep(s=>s+1)} disabled={!canNext()}
+              style={{ flex:2, padding:"14px", background:canNext()?"linear-gradient(135deg,#00C6FF,#0072FF)":"rgba(255,255,255,0.06)", border:"none", borderRadius:14, cursor:canNext()?"pointer":"not-allowed", fontFamily:"inherit", fontWeight:800, fontSize:15, color:"white", opacity:canNext()?1:0.4, boxShadow:canNext()?"0 4px 16px rgba(0,114,255,0.3)":"none" }}>
+              Continue →
+            </button>
+          ) : (
+            <button className="ob-btn" onClick={handleFinish}
+              style={{ flex:2, padding:"14px", background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:14, cursor:"pointer", fontFamily:"inherit", fontWeight:800, fontSize:15, color:"white", boxShadow:"0 4px 16px rgba(0,114,255,0.3)" }}>
+              Start Using ZIMAMOTO AI 🔥
+            </button>
+          )}
+        </div>
+
+        {/* Step label */}
+        <div style={{ textAlign:"center", marginTop:14, fontSize:12, color:muted }}>Step {step} of {TOTAL}</div>
+      </div>
+    </div>
+  );
+}
+
 // ─── GOOGLE AUTH GATE ─────────────────────────────────────────────────────────
 // This component is a transparent WRAPPER — if signed in it renders children
 // (the entire existing ZimamoApp) unchanged. If not signed in, it shows the
@@ -286,6 +472,12 @@ function googleUserToProfile(googleData) {
 function GoogleAuthGate({ children }) {
   const [session, setSession] = useState(() => {
     try { return JSON.parse(localStorage.getItem(G_SESSION_KEY) || "null"); } catch { return null; }
+  });
+  const [needsOnboarding, setNeedsOnboarding] = useState(() => {
+    // Show onboarding if signed in but never completed setup
+    const done = localStorage.getItem(ONBOARDING_KEY);
+    const sess = (() => { try { return JSON.parse(localStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
+    return sess && !done;
   });
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
@@ -333,6 +525,9 @@ function GoogleAuthGate({ children }) {
       // Persist both Google session and user profile
       localStorage.setItem(G_SESSION_KEY, JSON.stringify(profile));
       localStorage.setItem("zimamoto_user", JSON.stringify(profile));
+      // Check if this is a new user who needs onboarding
+      const alreadyOnboarded = localStorage.getItem(ONBOARDING_KEY);
+      if (!alreadyOnboarded) setNeedsOnboarding(true);
       setSession(profile);
     } catch(e) {
       setError("Sign-in failed: " + e.message);
@@ -350,7 +545,12 @@ function GoogleAuthGate({ children }) {
     return () => { delete window.__zimaSignOut; };
   }, []);
 
-  // ── Signed in — render the full app completely unchanged ──────────────────
+  // ── Onboarding — new user needs to set up profile ────────────────────────
+  if (session && needsOnboarding) {
+    return <OnboardingPage user={session} onComplete={(updated)=>{ setSession(updated); setNeedsOnboarding(false); }} />;
+  }
+
+  // ── Signed in & onboarded — render the full app completely unchanged ──────
   if (session) return children;
 
   // ── Not signed in — show Google Sign-In screen ────────────────────────────
@@ -562,6 +762,7 @@ function ZimamoApp() {
           {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} />}
         </div>
       </main>
+
 
 
       {/* ── INSTALL MODAL ── */}

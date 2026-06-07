@@ -1113,91 +1113,123 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
         </div>
       )}
 
-      {/* ── CHAT INPUT BOX (always shown except processing/results) ── */}
+      {/* ── CHAT INPUT BOX ── */}
       {(stage==="chat") && (
         <div style={{ flexShrink:0 }}>
+
           {/* Hint tags */}
-          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
+          <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:12, justifyContent:"center" }}>
             {[
               user.lang==="sw" ? "Eleza dhana hii" : "Explain this concept",
               user.lang==="sw" ? "Maswali ya mtihani" : "Exam questions",
               user.lang==="sw" ? "Muhtasari wa haraka" : "Quick summary",
             ].map(hint=>(
-              <button key={hint} onClick={()=>{ setChatInput(hint); textareaRef.current?.focus(); }}
-                style={{ background:"rgba(255,255,255,0.04)", border:`1px solid ${border}`, borderRadius:20, padding:"4px 12px", fontSize:11, color:muted, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s" }}
-                onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,114,255,0.1)";e.currentTarget.style.color="#60A5FA";e.currentTarget.style.borderColor="rgba(0,114,255,0.3)";}}
-                onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.04)";e.currentTarget.style.color=muted;e.currentTarget.style.borderColor=border;}}>
+              <button key={hint} onClick={()=>{ setChatInput(hint); textareaRef.current?.focus(); setIsGlowFocused(true); }}
+                style={{ background:"rgba(255,255,255,0.05)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:20, padding:"5px 14px", fontSize:11, color:"rgba(180,190,210,0.7)", cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s", letterSpacing:"0.02em" }}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(139,92,246,0.15)";e.currentTarget.style.borderColor="rgba(139,92,246,0.4)";e.currentTarget.style.color="#a78bfa";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(255,255,255,0.05)";e.currentTarget.style.borderColor="rgba(255,255,255,0.1)";e.currentTarget.style.color="rgba(180,190,210,0.7)";}}>
                 {hint}
               </button>
             ))}
           </div>
 
-          {/* Glow ring wrapper */}
-          <div style={{
-            borderRadius:28, padding:"1.5px",
-            background: isGlowFocused
-              ? "linear-gradient(135deg, rgba(0,198,255,0.6), rgba(0,114,255,0.6), rgba(124,58,237,0.5))"
-              : `1px solid ${border}`,
-            transition:"background 0.3s ease",
-            boxShadow: isGlowFocused ? "0 0 18px rgba(0,114,255,0.2)" : "none",
-          }}>
-            <div style={{ background: dark?"rgba(13,21,37,0.96)":"rgba(247,249,255,0.98)", backdropFilter:"blur(20px)", borderRadius:27, padding:"10px 10px 10px 14px", display:"flex", alignItems:"flex-end", gap:8 }}>
-
-              {/* File attach button */}
-              <button onClick={()=>fileRef.current.click()}
-                style={{ width:38, height:38, borderRadius:"50%", border:`1px solid ${pendingFile?"#0072FF":border}`, background: pendingFile?"rgba(0,114,255,0.12)":"transparent", color: pendingFile?"#0072FF":muted, display:"flex", alignItems:"center", justifyContent:"center", cursor:"pointer", flexShrink:0, transition:"all 0.2s" }}
-                onMouseEnter={e=>{e.currentTarget.style.background="rgba(0,114,255,0.12)";e.currentTarget.style.borderColor="#0072FF";e.currentTarget.style.color="#0072FF";}}
-                onMouseLeave={e=>{e.currentTarget.style.background=pendingFile?"rgba(0,114,255,0.12)":"transparent";e.currentTarget.style.borderColor=pendingFile?"#0072FF":border;e.currentTarget.style.color=pendingFile?"#0072FF":muted;}}
-                title="Attach PDF, DOCX or PPTX">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width:17, height:17 }}>
-                  <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
-                </svg>
-              </button>
-              <input ref={fileRef} type="file" accept=".pdf,.docx,.pptx" style={{ display:"none" }}
-                onChange={e=>{ const f=e.target.files[0]; if(f){ const ok=f.name.endsWith(".pdf")||f.name.endsWith(".docx")||f.name.endsWith(".pptx"); if(!ok){alert("Please upload PDF, DOCX, or PPTX.");return;} setPendingFile(f); } e.target.value=""; }} />
-
-              {/* File chip */}
-              {pendingFile && (
-                <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(0,114,255,0.12)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:20, padding:"4px 10px", fontSize:11, fontWeight:600, color:"#60A5FA", flexShrink:0 }}>
-                  <span>{pendingFile.name.endsWith(".pdf")?"📄":pendingFile.name.endsWith(".docx")?"📝":"📊"}</span>
-                  <span style={{ maxWidth:90, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{pendingFile.name}</span>
-                  <span onClick={()=>setPendingFile(null)} style={{ cursor:"pointer", opacity:0.6, fontSize:13, lineHeight:1 }}
-                    onMouseEnter={e=>e.currentTarget.style.color="#EF4444"}
-                    onMouseLeave={e=>e.currentTarget.style.color=""}>✕</span>
-                </div>
-              )}
-
-              {/* Textarea */}
-              <textarea ref={textareaRef} value={chatInput}
-                onChange={e=>{ if(e.target.value.length<=500){ setChatInput(e.target.value); resizeTextarea(); }}}
-                onFocus={()=>setIsGlowFocused(true)}
-                onBlur={()=>{ if(!chatInput.trim()) setIsGlowFocused(false); }}
-                onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();} }}
-                placeholder={user.lang==="sw"?"Ninaweza kukusaidia na nini?":"Can I help you with anything?"}
-                rows={1}
-                style={{ flex:1, background:"transparent", border:"none", outline:"none", color:dark?"#E8EDF5":"#1a1f2e", fontSize:15, fontFamily:"inherit", resize:"none", minHeight:38, maxHeight:160, padding:"8px 4px", lineHeight:1.5, overflowY:"auto", caretColor:"#0072FF" }}
-              />
-
-              {/* Send button */}
-              <button onClick={sendChat} disabled={(!chatInput.trim()&&!pendingFile)||chatStreaming}
-                style={{ width:42, height:42, borderRadius:"50%", border:"none", flexShrink:0, cursor:(!chatInput.trim()&&!pendingFile)||chatStreaming?"not-allowed":"pointer",
-                  background:(!chatInput.trim()&&!pendingFile)||chatStreaming?"rgba(255,255,255,0.08)":"linear-gradient(135deg,#00C6FF,#0072FF)",
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  boxShadow:(!chatInput.trim()&&!pendingFile)||chatStreaming?"none":"0 4px 14px rgba(0,114,255,0.4)",
-                  transition:"all 0.2s", opacity:(!chatInput.trim()&&!pendingFile)||chatStreaming?0.4:1 }}>
-                {chatStreaming
-                  ? <div style={{ width:16, height:16, border:"2.5px solid rgba(255,255,255,0.35)", borderTopColor:"white", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
-                  : <svg viewBox="0 0 24 24" fill="white" style={{ width:18, height:18 }}>
-                      <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
-                    </svg>
-                }
-              </button>
+          {/* File chip — shown above input when file attached */}
+          {pendingFile && (
+            <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:8, paddingLeft:60 }}>
+              <div style={{ display:"flex", alignItems:"center", gap:6, background:"rgba(139,92,246,0.15)", border:"1px solid rgba(139,92,246,0.3)", borderRadius:20, padding:"5px 12px", fontSize:12, fontWeight:600, color:"#a78bfa" }}>
+                <span>{pendingFile.name.endsWith(".pdf")?"📄":pendingFile.name.endsWith(".docx")?"📝":"📊"}</span>
+                <span style={{ maxWidth:160, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{pendingFile.name}</span>
+                <span onClick={()=>setPendingFile(null)} style={{ cursor:"pointer", fontSize:14, lineHeight:1, marginLeft:2, opacity:0.7 }}
+                  onMouseEnter={e=>e.currentTarget.style.color="#EF4444"}
+                  onMouseLeave={e=>e.currentTarget.style.color=""}>✕</span>
+              </div>
             </div>
+          )}
+
+          {/* Main input row */}
+          <div style={{ display:"flex", alignItems:"center", gap:10 }}>
+
+            {/* + Attach button (left) */}
+            <button onClick={()=>fileRef.current.click()}
+              style={{ width:46, height:46, borderRadius:"50%", border:"none", flexShrink:0, cursor:"pointer", transition:"all 0.2s",
+                background: pendingFile ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.08)",
+                color: pendingFile ? "#a78bfa" : "rgba(200,210,230,0.8)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                boxShadow: pendingFile ? "0 0 12px rgba(139,92,246,0.3)" : "none" }}
+              onMouseEnter={e=>{e.currentTarget.style.background="rgba(139,92,246,0.2)";e.currentTarget.style.color="#a78bfa";}}
+              onMouseLeave={e=>{e.currentTarget.style.background=pendingFile?"rgba(139,92,246,0.25)":"rgba(255,255,255,0.08)";e.currentTarget.style.color=pendingFile?"#a78bfa":"rgba(200,210,230,0.8)";}}
+              title="Attach PDF, DOCX or PPTX">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ width:20, height:20 }}>
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
+            </button>
+            <input ref={fileRef} type="file" accept=".pdf,.docx,.pptx" style={{ display:"none" }}
+              onChange={e=>{ const f=e.target.files[0]; if(f){ const ok=f.name.endsWith(".pdf")||f.name.endsWith(".docx")||f.name.endsWith(".pptx"); if(!ok){alert("Please upload PDF, DOCX, or PPTX.");return;} setPendingFile(f); } e.target.value=""; }} />
+
+            {/* Input pill with glow border */}
+            <div style={{
+              flex:1, position:"relative", borderRadius:32,
+              padding:"1.5px",
+              background: isGlowFocused
+                ? "linear-gradient(135deg, rgba(139,92,246,0.8), rgba(79,70,229,0.8), rgba(59,130,246,0.6))"
+                : "rgba(255,255,255,0.1)",
+              boxShadow: isGlowFocused ? "0 0 24px rgba(139,92,246,0.25), 0 0 48px rgba(79,70,229,0.1)" : "none",
+              transition:"all 0.3s ease",
+            }}>
+              <div style={{ borderRadius:31, background: dark?"rgba(10,12,22,0.98)":"rgba(245,247,255,0.98)", backdropFilter:"blur(20px)", display:"flex", alignItems:"center", padding:"0 16px", gap:10, minHeight:52 }}>
+
+                {/* Label + textarea stacked */}
+                <div style={{ flex:1, display:"flex", flexDirection:"column", justifyContent:"center" }}>
+                  {!chatInput && !isGlowFocused && (
+                    <div style={{ fontSize:15, fontWeight:600, lineHeight:1, marginBottom:2, pointerEvents:"none", userSelect:"none" }}>
+                      <span style={{ color:"rgba(200,210,230,0.9)" }}>Ask </span>
+                      <span style={{ background:"linear-gradient(135deg,#a78bfa,#6366f1)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Zimamoto</span>
+                      <span style={{ color:"rgba(200,210,230,0.9)" }}> Ai</span>
+                    </div>
+                  )}
+                  <textarea ref={textareaRef} value={chatInput}
+                    onChange={e=>{ if(e.target.value.length<=500){ setChatInput(e.target.value); resizeTextarea(); }}}
+                    onFocus={()=>setIsGlowFocused(true)}
+                    onBlur={()=>{ if(!chatInput.trim()) setIsGlowFocused(false); }}
+                    onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();} }}
+                    placeholder={isGlowFocused || chatInput ? (user.lang==="sw"?"Uliza chochote...":"Ask anything...") : ""}
+                    rows={1}
+                    style={{ background:"transparent", border:"none", outline:"none", color:dark?"#E8EDF5":"#1a1f2e", fontSize:14, fontFamily:"inherit", resize:"none", width:"100%", minHeight:isGlowFocused||chatInput?36:0, maxHeight:120, padding:0, lineHeight:1.5, overflowY:"auto", caretColor:"#8b5cf6", transition:"min-height 0.2s" }}
+                  />
+                </div>
+
+                {/* Mic icon (decorative) */}
+                <div style={{ color:"rgba(139,92,246,0.5)", flexShrink:0 }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ width:18, height:18 }}>
+                    <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            {/* Send button (right) */}
+            <button onClick={sendChat} disabled={(!chatInput.trim()&&!pendingFile)||chatStreaming}
+              style={{ width:46, height:46, borderRadius:"50%", border:"none", flexShrink:0,
+                cursor:(!chatInput.trim()&&!pendingFile)||chatStreaming?"not-allowed":"pointer",
+                background: (!chatInput.trim()&&!pendingFile)||chatStreaming ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#4f46e5,#3b82f6)",
+                display:"flex", alignItems:"center", justifyContent:"center",
+                boxShadow: (!chatInput.trim()&&!pendingFile)||chatStreaming ? "none" : "0 4px 16px rgba(79,70,229,0.5)",
+                transition:"all 0.2s",
+                opacity: (!chatInput.trim()&&!pendingFile)||chatStreaming ? 0.4 : 1 }}
+              onMouseEnter={e=>{ if(!e.currentTarget.disabled) e.currentTarget.style.transform="scale(1.08) translateY(-1px)"; }}
+              onMouseLeave={e=>{ e.currentTarget.style.transform="scale(1)"; }}>
+              {chatStreaming
+                ? <div style={{ width:16, height:16, border:"2.5px solid rgba(255,255,255,0.3)", borderTopColor:"white", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+                : <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width:18, height:18 }}>
+                    <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                  </svg>
+              }
+            </button>
           </div>
 
           {/* Bottom hint */}
-          <div style={{ textAlign:"center", fontSize:10, color:muted, marginTop:6, opacity:0.6 }}>
-            {user.lang==="sw" ? "Shift+Enter kwa mstari mpya · 📎 Attach PDF/DOCX kwa muhtasari kamili" : "Shift+Enter for new line · 📎 Attach PDF/DOCX for full analysis"}
+          <div style={{ textAlign:"center", fontSize:10, color:"rgba(100,120,150,0.5)", marginTop:8 }}>
+            {user.lang==="sw" ? "Shift+Enter kwa mstari mpya  ·  + Attach PDF/DOCX kwa uchambuzi kamili" : "Shift+Enter for new line  ·  + Attach PDF/DOCX for full analysis"}
           </div>
         </div>
       )}

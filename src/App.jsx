@@ -355,58 +355,61 @@ function GoogleAuthGate({ children }) {
 
   // ── Not signed in — show Google Sign-In screen ────────────────────────────
   return (
-    <div style={{ minHeight:"100vh", width:"100vw", maxWidth:"100%", background:"#080C14", display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0 }}>
+    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:60, paddingBottom:40, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, overflowY:"auto" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap');
         * { box-sizing:border-box; margin:0; padding:0; }
+        @keyframes spin { to { transform:rotate(360deg); } }
       `}</style>
 
-      {/* Background glow */}
-      <div style={{ position:"fixed", top:0, left:0, right:0, bottom:0, background:"radial-gradient(ellipse at 50% 20%, rgba(0,114,255,0.08) 0%, transparent 60%)", pointerEvents:"none" }} />
+      {/* Background radial glow — top center */}
+      <div style={{ position:"fixed", top:"-10%", left:"50%", transform:"translateX(-50%)", width:"80vw", height:"50vh", background:"radial-gradient(ellipse, rgba(0,114,255,0.12) 0%, transparent 65%)", pointerEvents:"none", zIndex:0 }} />
 
-      <div style={{ width:"100%", maxWidth:420, position:"relative", zIndex:1 }}>
-        {/* Logo + Brand */}
-        <div style={{ textAlign:"center", marginBottom:40 }}>
-          <div style={{ width:72, height:72, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, margin:"0 auto 16px", boxShadow:"0 8px 32px rgba(0,114,255,0.3)" }}>🔥</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:32, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>ZIMAMOTO AI</div>
-          <div style={{ fontSize:15, color:"#4A6080", lineHeight:1.6 }}>Every Student Deserves an AI Tutor</div>
-        </div>
+      <div style={{ width:"100%", maxWidth:480, position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
 
-        {/* Sign-in card */}
-        <div style={{ background:"rgba(13,21,37,0.9)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:24, padding:"32px 28px", backdropFilter:"blur(20px)", textAlign:"center" }}>
-          <div style={{ fontSize:20, fontWeight:700, color:"#E8EDF5", marginBottom:8 }}>Welcome</div>
-          <div style={{ fontSize:13, color:"#4A6080", marginBottom:28, lineHeight:1.6 }}>Sign in with your Google account to access your AI study companion</div>
+        {/* Icon */}
+        <div style={{ width:80, height:80, background:"linear-gradient(135deg,#1A8FFF,#0055CC)", borderRadius:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:42, marginBottom:20, boxShadow:"0 8px 32px rgba(0,100,255,0.35)" }}>🔥</div>
 
-          {/* Google Sign-In button rendered here */}
-          <div ref={btnRef} style={{ display:"flex", justifyContent:"center", marginBottom:16, minHeight:44 }} />
+        {/* Brand name */}
+        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:38, fontWeight:800, letterSpacing:"0.04em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:12, textAlign:"center" }}>ZIMAMOTO AI</div>
+
+        {/* Tagline */}
+        <div style={{ fontSize:16, fontWeight:500, color:"rgba(220,230,255,0.85)", marginBottom:40, textAlign:"center", lineHeight:1.5 }}>Your AI-Powered Exam Preparation Partner</div>
+
+        {/* Card */}
+        <div style={{ width:"100%", background:"rgba(10,18,38,0.85)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:22, padding:"32px 28px", backdropFilter:"blur(24px)", textAlign:"center" }}>
+
+          <div style={{ fontSize:24, fontWeight:700, color:"#FFFFFF", marginBottom:10 }}>Welcome</div>
+          <div style={{ fontSize:14, color:"rgba(160,180,220,0.7)", marginBottom:32, lineHeight:1.7 }}>
+            Sign in with your Google account to access<br/>your AI study companion
+          </div>
+
+          {/* Google button container */}
+          <div ref={btnRef} style={{ display:"flex", justifyContent:"center", marginBottom:4, minHeight:50 }} />
 
           {loading && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:"#4A6080", fontSize:13, marginTop:8 }}>
-              <div style={{ width:16, height:16, border:"2px solid rgba(0,114,255,0.3)", borderTopColor:"#0072FF", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:"rgba(160,180,220,0.6)", fontSize:13, marginTop:12 }}>
+              <div style={{ width:15, height:15, border:"2px solid rgba(0,114,255,0.3)", borderTopColor:"#0072FF", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
               Signing you in...
             </div>
           )}
 
           {error && (
-            <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#EF4444", marginTop:12 }}>
+            <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#EF4444", marginTop:12 }}>
               ⚠️ {error}
             </div>
           )}
 
-          <div style={{ marginTop:20, fontSize:11, color:"rgba(74,96,128,0.6)", lineHeight:1.6 }}>
+          {/* Divider */}
+          <div style={{ display:"flex", alignItems:"center", gap:12, margin:"20px 0" }}>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.07)" }} />
+            <span style={{ fontSize:13, color:"rgba(120,140,180,0.6)" }}>or</span>
+            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.07)" }} />
+          </div>
+
+          <div style={{ fontSize:12, color:"rgba(100,120,160,0.6)", lineHeight:1.8 }}>
             By signing in you agree to our Terms of Service.<br/>Your data is stored locally on your device.
           </div>
-        </div>
-
-        {/* Features preview */}
-        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:16 }}>
-          {[{icon:"🔥",t:"Study AI",d:"Smart summaries"},{icon:"💬",t:"Discussions",d:"AI-powered rooms"},{icon:"🎯",t:"Advice",d:"Academic guidance"},{icon:"📊",t:"12 Questions",d:"Exam preparation"}].map(f=>(
-            <div key={f.t} style={{ background:"rgba(13,21,37,0.6)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"14px 12px", textAlign:"center" }}>
-              <div style={{ fontSize:20, marginBottom:6 }}>{f.icon}</div>
-              <div style={{ fontWeight:700, fontSize:12, color:"#CBD5E1", marginBottom:2 }}>{f.t}</div>
-              <div style={{ fontSize:11, color:"#4A6080" }}>{f.d}</div>
-            </div>
-          ))}
         </div>
       </div>
     </div>

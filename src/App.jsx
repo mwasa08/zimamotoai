@@ -426,12 +426,10 @@ function ZimamoApp() {
       year: "3rd Year", theme: "dark", lang: "sw", notifications: true,
     };
   });
-  const [blogMajor, setBlogMajor] = useState(null);
   // Auto-persist user changes to localStorage
   useEffect(() => {
     try { localStorage.setItem("zimamoto_user", JSON.stringify(user)); } catch {}
   }, [user]);
-  const [showMajorPicker, setShowMajorPicker] = useState(false);
   const dark = user.theme === "dark";
   const isMobile = useIsMobile();
   const puterReady = useApiReady();
@@ -445,12 +443,10 @@ function ZimamoApp() {
   const navItems = [
     { id: "home",     icon: "🤖", label: "Study AI" },
     { id: "discuss",  icon: "🗣️", label: "Discussion" },
-    { id: "blog",     icon: "📖", label: "Blog" },
     { id: "advice",   icon: "💡", label: "Advice" },
     { id: "settings", icon: "⚙️", label: "Settings" },
   ];
-  const handleBlogNav = () => { if (!blogMajor) { setShowMajorPicker(true); return; } setPage("blog"); };
-  const handleNav = (id) => { id === "blog" ? handleBlogNav() : setPage(id); };
+  const handleNav = (id) => setPage(id);
 
   const SIDEBAR_W = 240;
   const bg = dark ? "#080C14" : "#F0F4FF";
@@ -559,29 +555,12 @@ function ZimamoApp() {
           )}
           {page==="home"     && <StudyAI user={user} dark={dark} isMobile={isMobile} puterReady={puterReady} />}
           {page==="discuss"  && <DiscussPage user={user} dark={dark} isMobile={isMobile} puterReady={puterReady} />}
-          {page==="blog"     && <BlogPage user={user} dark={dark} major={blogMajor} onChangeMajor={()=>setShowMajorPicker(true)} isMobile={isMobile} />}
           {page==="advice"   && <AdvicePage user={user} dark={dark} isMobile={isMobile} puterReady={puterReady} />}
           {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} />}
         </div>
       </main>
 
-      {showMajorPicker && (
-        <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", zIndex:200, display:"flex", alignItems:"center", justifyContent:"center", padding:20 }}
-          onClick={()=>setShowMajorPicker(false)}>
-          <div style={{ background:"#0D1525", border:"1px solid #1E2D4A", borderRadius:20, padding:24, width:"100%", maxWidth:400 }} onClick={e=>e.stopPropagation()}>
-            <div style={{ fontWeight:800, fontSize:18, marginBottom:16 }}>Select your Major</div>
-            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-              {MAJORS.map(m=>(
-                <button key={m.id} onClick={()=>{ setBlogMajor(m.id); setShowMajorPicker(false); setPage("blog"); }}
-                  style={{ padding:"12px", background:"rgba(255,255,255,0.04)", border:"1px solid #1E2D4A", borderRadius:12, cursor:"pointer", textAlign:"left", color:"#E8EDF5", fontFamily:"inherit" }}>
-                  <div style={{ fontSize:20, marginBottom:4 }}>{m.icon}</div>
-                  <div style={{ fontWeight:600, fontSize:13 }}>{m.label}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+
 
       {/* ── INSTALL MODAL ── */}
       {showInstallModal && <InstallModal onClose={() => setShowInstallModal(false)} />}
@@ -1355,80 +1334,6 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
           );
         })}
       </div>
-    </div>
-  );
-}
-
-// ─── BLOG PAGE ────────────────────────────────────────────────────────────────
-function BlogPage({ user, dark, major, onChangeMajor, isMobile }) {
-  const [filter, setFilter] = useState("all");
-  const [activePost, setActivePost] = useState(null);
-  const bg = dark?"#0D1525":"#fff";
-  const border = dark?"#1E2D4A":"#DDE5F5";
-  const muted = dark?"#4A6080":"#7A8EB0";
-  const pad = isMobile?"16px":"32px 40px";
-  const mi = MAJORS.find(m=>m.id===major);
-  const majorPosts = BLOG_POSTS[major]||[];
-  const otherPosts = Object.values(BLOG_POSTS).flat().filter(p=>!majorPosts.find(mp=>mp.id===p.id)).slice(0,4);
-  const allPosts = [...majorPosts,...otherPosts];
-  const posts = filter==="all"?allPosts:allPosts.filter(p=>p.type===filter);
-  const TC = { pastpaper:{label:"Past Paper",color:"#EF4444",icon:"📋"}, material:{label:"Material",color:"#3B82F6",icon:"📚"}, tip:{label:"Study Tip",color:"#10B981",icon:"💡"} };
-
-  if (activePost) {
-    const tc = TC[activePost.type];
-    return (
-      <div style={{ padding:pad }} className="fade-up">
-        <button onClick={()=>setActivePost(null)} style={{ background:"none", border:"none", color:muted, cursor:"pointer", fontSize:14, marginBottom:20 }}>← Back</button>
-        <span className="tag" style={{ background:`${tc.color}20`, color:tc.color, marginBottom:12, display:"inline-block" }}>{tc.icon} {tc.label}</span>
-        <h1 style={{ fontFamily:"sans-serif", fontSize:isMobile?20:26, fontWeight:800, lineHeight:1.3, marginBottom:14, marginTop:8 }}>{activePost.title}</h1>
-        <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:20, color:muted, fontSize:12 }}>
-          <div style={{ width:32, height:32, borderRadius:"50%", background:"linear-gradient(135deg,#00C6FF,#0072FF)", display:"flex", alignItems:"center", justifyContent:"center", fontSize:10, fontWeight:700, color:"white" }}>{activePost.author.split(" ").map(w=>w[0]).join("").slice(0,2)}</div>
-          <span style={{ fontWeight:600 }}>{activePost.author}</span><span>·</span><span>{activePost.date}</span>
-          <span style={{ marginLeft:"auto" }}>❤️ {activePost.likes}</span>
-        </div>
-        <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:16, padding:22, fontSize:14, lineHeight:1.9, color: dark?"#CBD5E1":"#374151", whiteSpace:"pre-wrap" }}>{activePost.summary}</div>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ padding:pad }}>
-      <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
-        <div style={{ fontFamily:"sans-serif", fontSize:isMobile?22:28, fontWeight:800 }}>Blog</div>
-        <button onClick={onChangeMajor} style={{ background:`${mi?.color}15`, border:`1px solid ${mi?.color}40`, borderRadius:20, padding:"6px 14px", fontSize:11, fontWeight:700, color:mi?.color, cursor:"pointer" }}>{mi?.icon} {mi?.label}</button>
-      </div>
-      <p style={{ fontSize:13, color:muted, marginBottom:18 }}>Past papers, materials &amp; study tips from your peers</p>
-      <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:20, paddingBottom:4 }}>
-        {[{id:"all",label:"All"},{id:"pastpaper",label:"📋 Past Papers"},{id:"material",label:"📚 Materials"},{id:"tip",label:"💡 Tips"}].map(f=>(
-          <button key={f.id} className="pill-btn" onClick={()=>setFilter(f.id)} style={{ background: filter===f.id?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, borderColor: filter===f.id?"transparent":border, color: filter===f.id?"white":muted }}>{f.label}</button>
-        ))}
-      </div>
-      {posts.length===0 ? (
-        <div style={{ textAlign:"center", padding:"60px 20px", color:muted }}>
-          <div style={{ fontSize:52, marginBottom:12 }}>📭</div>
-          <div style={{ fontWeight:700, fontSize:16 }}>No posts yet for {mi?.label}</div>
-        </div>
-      ) : (
-        <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:14 }}>
-          {posts.map((post,i)=>{
-            const tc = TC[post.type];
-            return (
-              <div key={post.id} className="fade-up" style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:18, cursor:"pointer", transition:"all 0.2s", animationDelay:`${i*0.06}s` }}
-                onClick={()=>setActivePost(post)}
-                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.borderColor="#0072FF44";}}
-                onMouseLeave={e=>{e.currentTarget.style.transform="translateY(0)";e.currentTarget.style.borderColor=border;}}>
-                <span className="tag" style={{ background:`${tc.color}18`, color:tc.color, marginBottom:10, display:"inline-block" }}>{tc.icon} {tc.label}</span>
-                <div style={{ fontWeight:700, fontSize:14, lineHeight:1.4, marginBottom:8 }}>{post.title}</div>
-                <div style={{ fontSize:12, color:muted, lineHeight:1.5, marginBottom:10 }}>{post.summary.slice(0,100)}...</div>
-                <div style={{ display:"flex", alignItems:"center", gap:8, fontSize:12, color:muted }}>
-                  <span>👤 {post.author}</span><span>·</span><span>{post.date}</span>
-                  <span style={{ marginLeft:"auto" }}>❤️ {post.likes}</span>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

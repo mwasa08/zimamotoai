@@ -1159,8 +1159,8 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
               onMouseEnter={e=>{e.currentTarget.style.background="rgba(139,92,246,0.2)";e.currentTarget.style.color="#a78bfa";}}
               onMouseLeave={e=>{e.currentTarget.style.background=pendingFile?"rgba(139,92,246,0.25)":"rgba(255,255,255,0.08)";e.currentTarget.style.color=pendingFile?"#a78bfa":"rgba(200,210,230,0.8)";}}
               title="Attach PDF, DOCX or PPTX">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ width:20, height:20 }}>
-                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" style={{ width:26, height:26 }}>
+                <line x1="12" y1="4" x2="12" y2="20"/><line x1="4" y1="12" x2="20" y2="12"/>
               </svg>
             </button>
             <input ref={fileRef} type="file" accept=".pdf,.docx,.pptx" style={{ display:"none" }}
@@ -1220,8 +1220,8 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
               onMouseLeave={e=>{ e.currentTarget.style.transform="scale(1)"; }}>
               {chatStreaming
                 ? <div style={{ width:16, height:16, border:"2.5px solid rgba(255,255,255,0.3)", borderTopColor:"white", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
-                : <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width:18, height:18 }}>
-                    <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+                : <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" style={{ width:26, height:26 }}>
+                    <line x1="12" y1="20" x2="12" y2="4"/><polyline points="5 11 12 4 19 11"/>
                   </svg>
               }
             </button>

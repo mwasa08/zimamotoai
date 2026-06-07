@@ -562,7 +562,7 @@ function ZimamoApp() {
           {page==="settings" && <SettingsPage user={user} setUser={setUser} dark={dark} isMobile={isMobile} />}
         </div>
       </main>
-}
+
 
       {/* ── INSTALL MODAL ── */}
       {showInstallModal && <InstallModal onClose={() => setShowInstallModal(false)} />}

@@ -240,7 +240,180 @@ function useIsMobile() {
 }
 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
-export default function ZimamoApp() {
+
+// ─── GOOGLE AUTH — NEW CODE (ZimamoApp below is completely unchanged) ─────────
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID_HERE";
+const G_SESSION_KEY = "zimamoto_google_session";
+
+// Decode Google's JWT credential (no server needed for frontend apps)
+function decodeGoogleJWT(token) {
+  try {
+    const payload = token.split(".")[1];
+    const decoded = JSON.parse(atob(payload.replace(/-/g,"+").replace(/_/g,"/")));
+    return decoded;
+  } catch { return null; }
+}
+
+// Get or create user profile from Google data
+function googleUserToProfile(googleData) {
+  const existing = (() => {
+    try { return JSON.parse(localStorage.getItem("zimamoto_user") || "null"); } catch { return null; }
+  })();
+  // If existing user — merge Google info in, keep their settings
+  if (existing && existing.googleId === googleData.sub) return existing;
+  // New Google user — create default profile
+  return {
+    name: googleData.name || googleData.email,
+    avatar: (googleData.name || googleData.email).slice(0,2).toUpperCase(),
+    color: "#0072FF",
+    email: googleData.email,
+    googleId: googleData.sub,
+    picture: googleData.picture,
+    university: "University of Dar es Salaam",
+    major: "ict",
+    year: "1st Year",
+    theme: "dark",
+    lang: "en",
+    notifications: true,
+    loginMethod: "google",
+  };
+}
+
+// ─── GOOGLE AUTH GATE ─────────────────────────────────────────────────────────
+// This component is a transparent WRAPPER — if signed in it renders children
+// (the entire existing ZimamoApp) unchanged. If not signed in, it shows the
+// Google Sign-In screen. ZimamoApp itself is never modified.
+function GoogleAuthGate({ children }) {
+  const [session, setSession] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(G_SESSION_KEY) || "null"); } catch { return null; }
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError]     = useState("");
+  const btnRef = useRef();
+
+  // Load Google Identity Services script dynamically
+  useEffect(() => {
+    if (session) return; // already signed in — skip
+    if (window.google?.accounts) { initGoogle(); return; }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = initGoogle;
+    script.onerror = () => setError("Could not load Google Sign-In. Check your internet connection.");
+    document.head.appendChild(script);
+  }, [session]);
+
+  function initGoogle() {
+    if (!window.google?.accounts) return;
+    window.google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleCredential,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    // Render the official Google button inside our custom container
+    if (btnRef.current) {
+      window.google.accounts.id.renderButton(btnRef.current, {
+        theme: "filled_black",
+        size: "large",
+        shape: "pill",
+        width: 320,
+        text: "signin_with",
+      });
+    }
+  }
+
+  function handleCredential(response) {
+    setLoading(true); setError("");
+    try {
+      const googleData = decodeGoogleJWT(response.credential);
+      if (!googleData?.sub) throw new Error("Invalid Google response.");
+      const profile = googleUserToProfile(googleData);
+      // Persist both Google session and user profile
+      localStorage.setItem(G_SESSION_KEY, JSON.stringify(profile));
+      localStorage.setItem("zimamoto_user", JSON.stringify(profile));
+      setSession(profile);
+    } catch(e) {
+      setError("Sign-in failed: " + e.message);
+    }
+    setLoading(false);
+  }
+
+  // Expose sign-out globally so Settings page can call it
+  useEffect(() => {
+    window.__zimaSignOut = () => {
+      if (window.google?.accounts?.id) window.google.accounts.id.disableAutoSelect();
+      localStorage.removeItem(G_SESSION_KEY);
+      setSession(null);
+    };
+    return () => { delete window.__zimaSignOut; };
+  }, []);
+
+  // ── Signed in — render the full app completely unchanged ──────────────────
+  if (session) return children;
+
+  // ── Not signed in — show Google Sign-In screen ────────────────────────────
+  return (
+    <div style={{ minHeight:"100vh", background:"#080C14", display:"flex", alignItems:"center", justifyContent:"center", padding:20, fontFamily:"'Outfit',sans-serif" }}>
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap');
+        * { box-sizing:border-box; margin:0; padding:0; }
+      `}</style>
+
+      {/* Background glow */}
+      <div style={{ position:"fixed", top:0, left:0, right:0, bottom:0, background:"radial-gradient(ellipse at 50% 20%, rgba(0,114,255,0.08) 0%, transparent 60%)", pointerEvents:"none" }} />
+
+      <div style={{ width:"100%", maxWidth:420, position:"relative", zIndex:1 }}>
+        {/* Logo + Brand */}
+        <div style={{ textAlign:"center", marginBottom:40 }}>
+          <div style={{ width:72, height:72, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:20, display:"flex", alignItems:"center", justifyContent:"center", fontSize:36, margin:"0 auto 16px", boxShadow:"0 8px 32px rgba(0,114,255,0.3)" }}>🔥</div>
+          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:32, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:8 }}>ZIMAMOTO AI</div>
+          <div style={{ fontSize:15, color:"#4A6080", lineHeight:1.6 }}>Every Student Deserves an AI Tutor</div>
+        </div>
+
+        {/* Sign-in card */}
+        <div style={{ background:"rgba(13,21,37,0.9)", border:"1px solid rgba(255,255,255,0.08)", borderRadius:24, padding:"32px 28px", backdropFilter:"blur(20px)", textAlign:"center" }}>
+          <div style={{ fontSize:20, fontWeight:700, color:"#E8EDF5", marginBottom:8 }}>Welcome</div>
+          <div style={{ fontSize:13, color:"#4A6080", marginBottom:28, lineHeight:1.6 }}>Sign in with your Google account to access your AI study companion</div>
+
+          {/* Google Sign-In button rendered here */}
+          <div ref={btnRef} style={{ display:"flex", justifyContent:"center", marginBottom:16, minHeight:44 }} />
+
+          {loading && (
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:"#4A6080", fontSize:13, marginTop:8 }}>
+              <div style={{ width:16, height:16, border:"2px solid rgba(0,114,255,0.3)", borderTopColor:"#0072FF", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+              Signing you in...
+            </div>
+          )}
+
+          {error && (
+            <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.3)", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#EF4444", marginTop:12 }}>
+              ⚠️ {error}
+            </div>
+          )}
+
+          <div style={{ marginTop:20, fontSize:11, color:"rgba(74,96,128,0.6)", lineHeight:1.6 }}>
+            By signing in you agree to our Terms of Service.<br/>Your data is stored locally on your device.
+          </div>
+        </div>
+
+        {/* Features preview */}
+        <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10, marginTop:16 }}>
+          {[{icon:"🔥",t:"Study AI",d:"Smart summaries"},{icon:"💬",t:"Discussions",d:"AI-powered rooms"},{icon:"🎯",t:"Advice",d:"Academic guidance"},{icon:"📊",t:"12 Questions",d:"Exam preparation"}].map(f=>(
+            <div key={f.t} style={{ background:"rgba(13,21,37,0.6)", border:"1px solid rgba(255,255,255,0.06)", borderRadius:14, padding:"14px 12px", textAlign:"center" }}>
+              <div style={{ fontSize:20, marginBottom:6 }}>{f.icon}</div>
+              <div style={{ fontWeight:700, fontSize:12, color:"#CBD5E1", marginBottom:2 }}>{f.t}</div>
+              <div style={{ fontSize:11, color:"#4A6080" }}>{f.d}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ZimamoApp() {
   const [page, setPage] = useState("home");
   const [user, setUser] = useState(() => {
     try {
@@ -1444,7 +1617,7 @@ useEffect(() => {
 }
 
 // ─── SETTINGS PAGE ────────────────────────────────────────────────────────────
-function SettingsPage({ user, setUser, dark, isMobile }) {
+function SettingsPage({ user, setUser, dark, isMobile, onSignOut }) {
   const [saved, setSaved] = useState(false);
   const bg = dark?"#0D1525":"#fff";
   const border = dark?"#1E2D4A":"#DDE5F5";
@@ -1503,12 +1676,26 @@ function SettingsPage({ user, setUser, dark, isMobile }) {
         {saved?"✅ Changes Saved!":"Save Changes"}
       </button>
 
-      <div style={{ textAlign:"center", marginTop:30, color:muted, fontSize:12 }}>
+      {/* NEW: Sign Out button — calls GoogleAuthGate sign-out */}
+      <button onClick={()=>window.__zimaSignOut?.()} style={{ width:"100%", padding:"13px", marginTop:12, background:"rgba(239,68,68,0.08)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:12, color:"#EF4444", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", display:"flex", alignItems:"center", justifyContent:"center", gap:8 }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{width:16,height:16}}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Sign Out
+      </button>
+      <div style={{ textAlign:"center", marginTop:24, color:muted, fontSize:12 }}>
         <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
         <div>©Mwasa Inc 2026 · Built for African Students</div>
         <div style={{ marginTop:4, opacity:0.6 }}>Version 1.1 · powered by Groq</div>
       </div>
       <Analytics />
     </div>
+  );
+}
+
+// NEW: Wrap existing app with Google Auth Gate — ZimamoApp is completely unchanged
+export default function App() {
+  return (
+    <GoogleAuthGate>
+      <ZimamoApp />
+    </GoogleAuthGate>
   );
 }

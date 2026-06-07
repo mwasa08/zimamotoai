@@ -337,7 +337,7 @@ function OnboardingPage({ user, onComplete }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", padding:"24px 20px", fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, overflowY:"auto" }}>
+    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:48, paddingBottom:60, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
       <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} .ob-input:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.12);} .ob-btn{transition:all 0.2s;} .ob-btn:hover{transform:translateY(-1px);} .ob-btn:active{transform:scale(0.97);}  @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       <div style={{ position:"fixed", top:"5%", left:"50%", transform:"translateX(-50%)", width:"70vw", height:"40vh", background:"radial-gradient(ellipse,rgba(0,114,255,0.08) 0%,transparent 70%)", pointerEvents:"none" }} />

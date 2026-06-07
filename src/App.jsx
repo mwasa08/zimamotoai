@@ -474,47 +474,43 @@ function GoogleAuthGate({ children }) {
     try { return JSON.parse(localStorage.getItem(G_SESSION_KEY) || "null"); } catch { return null; }
   });
   const [needsOnboarding, setNeedsOnboarding] = useState(() => {
-    // Show onboarding if signed in but never completed setup
     const done = localStorage.getItem(ONBOARDING_KEY);
     const sess = (() => { try { return JSON.parse(localStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
     return sess && !done;
   });
+
+  // "landing" | "signup" | "login" | "welcome"
+  const [screen, setScreen] = useState("landing");
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
+  const [welcomeName, setWelcomeName] = useState("");
   const btnRef = useRef();
 
-  // Load Google Identity Services script dynamically
+  // Load Google GIS script whenever we enter signup screen
   useEffect(() => {
-    if (session) return; // already signed in — skip
-    if (window.google?.accounts) { initGoogle(); return; }
-    const script = document.createElement("script");
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = initGoogle;
-    script.onerror = () => setError("Could not load Google Sign-In. Check your internet connection.");
-    document.head.appendChild(script);
-  }, [session]);
-
-  function initGoogle() {
-    if (!window.google?.accounts) return;
-    window.google.accounts.id.initialize({
-      client_id: GOOGLE_CLIENT_ID,
-      callback: handleCredential,
-      auto_select: false,
-      cancel_on_tap_outside: true,
-    });
-    // Render the official Google button inside our custom container
-    if (btnRef.current) {
-      window.google.accounts.id.renderButton(btnRef.current, {
-        theme: "filled_black",
-        size: "large",
-        shape: "pill",
-        width: 320,
-        text: "signin_with",
+    if (screen !== "signup") return;
+    const init = () => {
+      if (!window.google?.accounts) return;
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleCredential,
+        auto_select: false,
+        cancel_on_tap_outside: true,
       });
-    }
-  }
+      if (btnRef.current) {
+        window.google.accounts.id.renderButton(btnRef.current, {
+          theme: "filled_black", size: "large", shape: "pill", width: 320, text: "signup_with",
+        });
+      }
+    };
+    if (window.google?.accounts) { init(); return; }
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.async = true; s.defer = true;
+    s.onload = init;
+    s.onerror = () => setError("Could not load Google Sign-In. Check internet connection.");
+    document.head.appendChild(s);
+  }, [screen]);
 
   function handleCredential(response) {
     setLoading(true); setError("");
@@ -522,98 +518,152 @@ function GoogleAuthGate({ children }) {
       const googleData = decodeGoogleJWT(response.credential);
       if (!googleData?.sub) throw new Error("Invalid Google response.");
       const profile = googleUserToProfile(googleData);
-      // Persist both Google session and user profile
       localStorage.setItem(G_SESSION_KEY, JSON.stringify(profile));
       localStorage.setItem("zimamoto_user", JSON.stringify(profile));
-      // Check if this is a new user who needs onboarding
       const alreadyOnboarded = localStorage.getItem(ONBOARDING_KEY);
       if (!alreadyOnboarded) setNeedsOnboarding(true);
       setSession(profile);
-    } catch(e) {
-      setError("Sign-in failed: " + e.message);
-    }
+    } catch(e) { setError("Sign-up failed: " + e.message); }
     setLoading(false);
   }
 
-  // Expose sign-out globally so Settings page can call it
+  function handleLogin() {
+    setError("");
+    // Check if user has previously signed up (session exists in storage)
+    const stored = (() => { try { return JSON.parse(localStorage.getItem(G_SESSION_KEY)||"null"); } catch { return null; } })();
+    if (!stored) {
+      setError("No account found. Please Sign up first.");
+      return;
+    }
+    // Show welcome back screen briefly, then enter app
+    setWelcomeName(stored.name || "Student");
+    setScreen("welcome");
+    setTimeout(() => {
+      localStorage.setItem(G_SESSION_KEY, JSON.stringify(stored));
+      setSession(stored);
+    }, 2200);
+  }
+
+  // Sign-out exposed globally for Settings page
   useEffect(() => {
     window.__zimaSignOut = () => {
       if (window.google?.accounts?.id) window.google.accounts.id.disableAutoSelect();
       localStorage.removeItem(G_SESSION_KEY);
-      setSession(null);
+      setSession(null); setScreen("landing"); setError("");
     };
     return () => { delete window.__zimaSignOut; };
   }, []);
 
-  // ── Onboarding — new user needs to set up profile ────────────────────────
+  // ── Onboarding ──────────────────────────────────────────────────────────────
   if (session && needsOnboarding) {
-    return <OnboardingPage user={session} onComplete={(updated)=>{ setSession(updated); setNeedsOnboarding(false); }} />;
+    return <OnboardingPage user={session} onComplete={(u)=>{ setSession(u); setNeedsOnboarding(false); }} />;
   }
 
-  // ── Signed in & onboarded — render the full app completely unchanged ──────
+  // ── Fully authenticated ─────────────────────────────────────────────────────
   if (session) return children;
 
-  // ── Not signed in — show Google Sign-In screen ────────────────────────────
-  return (
-    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:60, paddingBottom:40, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, overflowY:"auto" }}>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap');
-        * { box-sizing:border-box; margin:0; padding:0; }
-        @keyframes spin { to { transform:rotate(360deg); } }
-      `}</style>
-
-      {/* Background radial glow — top center */}
-      <div style={{ position:"fixed", top:"-10%", left:"50%", transform:"translateX(-50%)", width:"80vw", height:"50vh", background:"radial-gradient(ellipse, rgba(0,114,255,0.12) 0%, transparent 65%)", pointerEvents:"none", zIndex:0 }} />
-
-      <div style={{ width:"100%", maxWidth:480, position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center" }}>
-
-        {/* Icon */}
-        <div style={{ width:80, height:80, background:"linear-gradient(135deg,#1A8FFF,#0055CC)", borderRadius:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:42, marginBottom:20, boxShadow:"0 8px 32px rgba(0,100,255,0.35)" }}>🔥</div>
-
-        {/* Brand name */}
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:38, fontWeight:800, letterSpacing:"0.04em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:12, textAlign:"center" }}>ZIMAMOTO AI</div>
-
-        {/* Tagline */}
-        <div style={{ fontSize:16, fontWeight:500, color:"rgba(220,230,255,0.85)", marginBottom:40, textAlign:"center", lineHeight:1.5 }}>Your AI-Powered Exam Preparation Partner</div>
-
-        {/* Card */}
-        <div style={{ width:"100%", background:"rgba(10,18,38,0.85)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:22, padding:"32px 28px", backdropFilter:"blur(24px)", textAlign:"center" }}>
-
-          <div style={{ fontSize:24, fontWeight:700, color:"#FFFFFF", marginBottom:10 }}>Welcome</div>
-          <div style={{ fontSize:14, color:"rgba(160,180,220,0.7)", marginBottom:32, lineHeight:1.7 }}>
-            Sign in with your Google account to access<br/>your AI study companion
-          </div>
-
-          {/* Google button container */}
-          <div ref={btnRef} style={{ display:"flex", justifyContent:"center", marginBottom:4, minHeight:50 }} />
-
-          {loading && (
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:"rgba(160,180,220,0.6)", fontSize:13, marginTop:12 }}>
-              <div style={{ width:15, height:15, border:"2px solid rgba(0,114,255,0.3)", borderTopColor:"#0072FF", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
-              Signing you in...
-            </div>
-          )}
-
-          {error && (
-            <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#EF4444", marginTop:12 }}>
-              ⚠️ {error}
-            </div>
-          )}
-
-          {/* Divider */}
-          <div style={{ display:"flex", alignItems:"center", gap:12, margin:"20px 0" }}>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.07)" }} />
-            <span style={{ fontSize:13, color:"rgba(120,140,180,0.6)" }}>or</span>
-            <div style={{ flex:1, height:1, background:"rgba(255,255,255,0.07)" }} />
-          </div>
-
-          <div style={{ fontSize:12, color:"rgba(100,120,160,0.6)", lineHeight:1.8 }}>
-            By signing in you agree to our Terms of Service.<br/>Your data is stored locally on your device.
-          </div>
-        </div>
+  // ── Shared layout wrapper ───────────────────────────────────────────────────
+  const PageWrap = ({kids}) => (
+    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:56, paddingBottom:48, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes spin{to{transform:rotate(360deg);}} @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} .za-btn{transition:all 0.2s;} .za-btn:hover{transform:translateY(-2px);} .za-btn:active{transform:scale(0.97);}`}</style>
+      <div style={{ position:"fixed", top:"-5%", left:"50%", transform:"translateX(-50%)", width:"80vw", height:"50vh", background:"radial-gradient(ellipse,rgba(0,100,255,0.1) 0%,transparent 70%)", pointerEvents:"none", zIndex:0 }} />
+      <div style={{ width:"100%", maxWidth:440, position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", animation:"fadeUp 0.4s ease" }}>
+        {/* Logo */}
+        <div style={{ width:90, height:90, background:"linear-gradient(135deg,#1A8FFF,#0044CC)", borderRadius:24, display:"flex", alignItems:"center", justifyContent:"center", fontSize:48, marginBottom:22, boxShadow:"0 10px 40px rgba(0,100,255,0.4)" }}>🔥</div>
+        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:clamp(28,5,38), fontWeight:800, letterSpacing:"0.05em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:10, textAlign:"center" }}>ZIMAMOTO AI</div>
+        <div style={{ fontSize:15, fontWeight:500, color:"rgba(200,220,255,0.75)", marginBottom:36, textAlign:"center", lineHeight:1.6 }}>Your AI-Powered Exam Preparation Partner</div>
+        {kids}
       </div>
     </div>
   );
+
+  // Helper for responsive font
+  function clamp(min, vw, max){ return `clamp(${min}px, ${vw}vw, ${max}px)`; }
+
+  // ── LANDING SCREEN ──────────────────────────────────────────────────────────
+  if (screen === "landing") return (
+    <PageWrap kids={
+      <div style={{ width:"100%", background:"rgba(8,16,36,0.9)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:24, padding:"32px 28px", backdropFilter:"blur(24px)", textAlign:"center" }}>
+        <div style={{ fontSize:26, fontWeight:800, color:"#FFFFFF", marginBottom:10 }}>Welcome</div>
+        <div style={{ fontSize:14, color:"rgba(160,180,220,0.65)", marginBottom:32, lineHeight:1.8 }}>
+          Access your AI study companion<br/>to prepare smarter and achieve more.
+        </div>
+
+        {/* Sign up button */}
+        <button className="za-btn" onClick={()=>{ setError(""); setScreen("signup"); }}
+          style={{ width:"100%", padding:"17px", marginBottom:14, background:"linear-gradient(90deg,#1A6FFF,#0055EE)", border:"none", borderRadius:100, color:"white", fontWeight:700, fontSize:17, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 24px rgba(0,90,255,0.4)" }}>
+          Sign up
+        </button>
+
+        {/* Log in button */}
+        <button className="za-btn" onClick={()=>{ setError(""); handleLogin(); }}
+          style={{ width:"100%", padding:"16px", background:"transparent", border:"2px solid rgba(0,100,255,0.5)", borderRadius:100, color:"white", fontWeight:700, fontSize:17, cursor:"pointer", fontFamily:"inherit" }}>
+          Log in
+        </button>
+
+        {error && (
+          <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#EF4444", marginTop:16 }}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        <div style={{ fontSize:12, color:"rgba(100,120,160,0.5)", marginTop:20, lineHeight:1.8 }}>
+          By signing up or logging in, you agree to our Terms of Service.
+        </div>
+      </div>
+    } />
+  );
+
+  // ── SIGN UP SCREEN (Google OAuth) ───────────────────────────────────────────
+  if (screen === "signup") return (
+    <PageWrap kids={
+      <div style={{ width:"100%", background:"rgba(8,16,36,0.9)", border:"1px solid rgba(255,255,255,0.07)", borderRadius:24, padding:"32px 28px", backdropFilter:"blur(24px)", textAlign:"center" }}>
+        <div style={{ fontSize:22, fontWeight:800, color:"#FFFFFF", marginBottom:8 }}>Create your account</div>
+        <div style={{ fontSize:13, color:"rgba(160,180,220,0.65)", marginBottom:28, lineHeight:1.7 }}>
+          Sign up with Google to get started.<br/>It only takes a few seconds.
+        </div>
+
+        {/* Google Sign-Up button */}
+        <div ref={btnRef} style={{ display:"flex", justifyContent:"center", marginBottom:8, minHeight:50 }} />
+
+        {loading && (
+          <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:"rgba(160,180,220,0.6)", fontSize:13, marginTop:12 }}>
+            <div style={{ width:15, height:15, border:"2px solid rgba(0,114,255,0.3)", borderTopColor:"#0072FF", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+            Creating your account...
+          </div>
+        )}
+
+        {error && (
+          <div style={{ background:"rgba(239,68,68,0.1)", border:"1px solid rgba(239,68,68,0.25)", borderRadius:10, padding:"10px 14px", fontSize:13, color:"#EF4444", marginTop:12 }}>
+            ⚠️ {error}
+          </div>
+        )}
+
+        <button onClick={()=>{ setError(""); setScreen("landing"); }} style={{ marginTop:20, background:"none", border:"none", color:"rgba(100,120,160,0.7)", fontSize:13, cursor:"pointer", fontFamily:"inherit" }}>
+          ← Back to home
+        </button>
+      </div>
+    } />
+  );
+
+  // ── WELCOME BACK SCREEN ─────────────────────────────────────────────────────
+  if (screen === "welcome") return (
+    <PageWrap kids={
+      <div style={{ width:"100%", background:"rgba(8,16,36,0.9)", border:"1px solid rgba(0,114,255,0.2)", borderRadius:24, padding:"40px 28px", backdropFilter:"blur(24px)", textAlign:"center" }}>
+        <div style={{ fontSize:56, marginBottom:16 }}>🎉</div>
+        <div style={{ fontSize:26, fontWeight:800, color:"#FFFFFF", marginBottom:8 }}>Welcome back!</div>
+        <div style={{ fontSize:16, color:"rgba(160,180,220,0.8)", marginBottom:24, lineHeight:1.7 }}>
+          Good to see you again,<br/><span style={{ color:"#00C6FF", fontWeight:700 }}>{welcomeName}</span> 🔥
+        </div>
+        <div style={{ display:"flex", alignItems:"center", justifyContent:"center", gap:8, color:"rgba(160,180,220,0.5)", fontSize:13 }}>
+          <div style={{ width:15, height:15, border:"2px solid rgba(0,114,255,0.3)", borderTopColor:"#0072FF", borderRadius:"50%", animation:"spin 0.8s linear infinite" }} />
+          Entering your workspace...
+        </div>
+      </div>
+    } />
+  );
+
+  return null;
 }
 
 function ZimamoApp() {

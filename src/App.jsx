@@ -552,6 +552,8 @@ function GoogleAuthGate({ children }) {
     window.__zimaSignOut = () => {
       if (window.google?.accounts?.id) window.google.accounts.id.disableAutoSelect();
       sessionStorage.removeItem(G_SESSION_KEY);
+      localStorage.removeItem("zimamoto_user");
+      localStorage.removeItem(ONBOARDING_KEY);
       setSession(null); setScreen("landing"); setError("");
     };
     return () => { delete window.__zimaSignOut; };

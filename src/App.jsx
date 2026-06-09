@@ -36,7 +36,7 @@ function InstallModal({ onClose }) {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(8px)" }}>
       <div style={{ background:"#0D1525", border:"1px solid #1E2D4A", borderRadius:22, width:"100%", maxWidth:400, padding:28 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:18 }}>📲 Install ZIMAMOTO AI</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:800, fontSize:18 }}>📲 Install ZIMAMOTO AI</div>
           <button onClick={onClose} style={{ background:"none", border:"none", color:"#4A6080", fontSize:22, cursor:"pointer" }}>✕</button>
         </div>
         {isIOS ? (
@@ -219,10 +219,10 @@ const BLOG_POSTS = {
 
 const ADVICE_POSTS = [
   { id: 1, title: "Jinsi ya kuongeza GPA yako kwa semester moja", author: "Prof. Mwasa", avatar: "PM", color: "#0b0bf5", category: "Academic", likes: 287, date: "Mar 2024", content: "Njia rahisi na za vitendo za kuboresha alama zako bila msongo wa mawazo.\n\n1. Jua mtihani unajumuisha nini — soma outline ya course yako kwanza.\n2. Tengeneza ratiba ya masomo — angalau saa 2 kila siku.\n3. Jiunge na discussion groups — kufundisha wengine kunakusaidia wewe pia.\n4. Tembelea lecturer wakati wa office hours.\n5. Fanya past papers miaka 3 iliyopita.\n\nUsisahau kupumzika vizuri usiku wa mtihani." },
-  { id: 2, title: "How to manage time as a university student", author: "Ms. Betty K.", avatar: "MB", color: "#b98c10", category: "Life Skills", likes: 194, date: "Feb 2024", content: "Time management is the #1 skill university students need.\n\nThe Time Block Method:\n• Morning (6-9am): Your hardest subject\n• Afternoon: Group work, assignments, readings\n• Evening: 30-minute review\n\nKey rules:\n1. Plan your week every Sunday night\n2. Turn off your phone during study blocks\n3. Use Pomodoro — 25 min focus, 5 min break\n4. One day per week completely study-free\n\nConsistency beats intensity every time." },
+  { id: 2, title: "How to manage time as a university student", author: "Ms Betty K.", avatar: "MB", color: "#b98c10", category: "Life Skills", likes: 194, date: "Feb 2024", content: "Time management is the #1 skill university students need.\n\nThe Time Block Method:\n• Morning (6-9am): Your hardest subject\n• Afternoon: Group work, assignments, readings\n• Evening: 30-minute review\n\nKey rules:\n1. Plan your week every Sunday night\n2. Turn off your phone during study blocks\n3. Use Pomodoro — 25 min focus, 5 min break\n4. One day per week completely study-free\n\nConsistency beats intensity every time." },
   { id: 3, title: "Mental health: Ukweli kuhusu msongo wa mawazo chuoni", author: "Dr. Grace K.", avatar: "GK", color: "#EC4899", category: "Wellness", likes: 342, date: "Jan 2024", content: "Msongo wa mawazo ni tatizo halisi kwa wanafunzi wengi.\n\nDalili:\n• Usingizi mbaya\n• Kujisikia upweke\n• Kushindwa kujilazimisha kusoma\n\nMbinu za msaada:\n1. Zungumza na mtu unayemwamini\n2. Tembea nje kila siku — hata dakika 20\n3. Tembelea counseling services ya chuo\n\nKukaa kimya hakusaidii. Omba msaada — ni nguvu, si udhaifu." },
-  { id: 4, title: "From CGPA 2.1 to 3.8: My honest story", author: "Dr. Yassin J.", avatar: "YJ", color: "#8B5CF6", category: "Academic", likes: 509, date: "Mar 2024", content: "I was almost suspended after my second semester. CGPA 2.1. Here is exactly what I changed.\n\nWhat actually worked:\n1. Sitting in the front two rows of every lecture\n2. Making friends with the best student in each unit\n3. Starting assignments the day they are given\n4. Going to every consultation hour\n5. Reading at least one week ahead of the syllabus\n\nThe change is possible. Start today, not next semester." },
-  { id: 5, title: "Campus internships: How to get one in your 2nd year", author: "Ms. Careen K.", avatar: "DK", color: "#95066a", category: "Career", likes: 178, date: "Feb 2024", content: "Most students wait until 4th year. By then it is too late.\n\nHow to get early internships:\n1. Polish your LinkedIn profile\n2. Email companies directly\n3. Attend every career fair on campus\n4. Build a simple portfolio/GitHub if you are in tech\n5. Ask your lecturers — they have industry connections\n\nDon't wait for opportunity. Create it." },
+  { id: 4, title: "From CGPA 2.1 to 3.8: My honest story", author: "Yassin J.", avatar: "YJ", color: "#8B5CF6", category: "Academic", likes: 509, date: "Mar 2024", content: "I was almost suspended after my second semester. CGPA 2.1. Here is exactly what I changed.\n\nWhat actually worked:\n1. Sitting in the front two rows of every lecture\n2. Making friends with the best student in each unit\n3. Starting assignments the day they are given\n4. Going to every consultation hour\n5. Reading at least one week ahead of the syllabus\n\nThe change is possible. Start today, not next semester." },
+  { id: 5, title: "Campus internships: How to get one in your 2nd year", author: "Dr. Careen K.", avatar: "DK", color: "#95066a", category: "Career", likes: 178, date: "Feb 2024", content: "Most students wait until 4th year. By then it is too late.\n\nHow to get early internships:\n1. Polish your LinkedIn profile\n2. Email companies directly\n3. Attend every career fair on campus\n4. Build a simple portfolio/GitHub if you are in tech\n5. Ask your lecturers — they have industry connections\n\nDon't wait for opportunity. Create it." },
   { id: 6, title: "10 Smart AI Prompts Every Student Should Know", author: "Dr. Vivian.", avatar: "DV", color: "#3bf676", category: "Study Tips", likes: 500, date: "March 2026", content: "Most students ask AI random questions and get messy answers. Smart students use structured prompts.\n\nHere are 10 useful AI prompts:\n\n1. ELI5 — Explain Like I'm 5\nUse when a concept is confusing and you need a very simple explanation.\n\n2. TL;DR — Too Long; Didn't Read\nAsk AI to summarize long notes, articles, or research papers.\n\n3. BUL — Bullet Points\nConvert explanations into bullet points for easier studying.\n\n4. EX — Example\nAsk for real-world examples to understand a concept better.\n\n5. STEP — Step-by-Step\nGreat for solving math, programming problems, or processes.\n\n6. DEF — Definition\nQuickly get the meaning of important terms.\n\n7. COMP — Comparison\nUseful when studying differences between theories or technologies.\n\n8. PROS/CONS\nHelps evaluate arguments, policies, or ideas.\n\n9. QUIZ\nGenerate practice questions to test your knowledge.\n\n10. SUM — Summary\nCondense long lectures or chapters into key ideas.\n\nSmart prompts = faster learning. Use AI like a tool, not a crutch."},
 ];
 
@@ -337,8 +337,8 @@ function OnboardingPage({ user, onComplete }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:48, paddingBottom:60, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} .ob-input:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.12);} .ob-btn{transition:all 0.2s;} .ob-btn:hover{transform:translateY(-1px);} .ob-btn:active{transform:scale(0.97);}  @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:48, paddingBottom:60, paddingLeft:24, paddingRight:24, fontFamily:"'Inter',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} .ob-input:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.12);} .ob-btn{transition:all 0.2s;} .ob-btn:hover{transform:translateY(-1px);} .ob-btn:active{transform:scale(0.97);}  @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       <div style={{ position:"fixed", top:"5%", left:"50%", transform:"translateX(-50%)", width:"70vw", height:"40vh", background:"radial-gradient(ellipse,rgba(0,114,255,0.08) 0%,transparent 70%)", pointerEvents:"none" }} />
 
@@ -347,7 +347,7 @@ function OnboardingPage({ user, onComplete }) {
         {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <div style={{ width:52, height:52, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, margin:"0 auto 10px", boxShadow:"0 6px 20px rgba(0,114,255,0.3)" }}>🔥</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Set up your profile</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontSize:20, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Set up your profile</div>
           <div style={{ fontSize:13, color:muted, marginTop:4 }}>Takes less than a minute</div>
         </div>
 
@@ -569,13 +569,13 @@ function GoogleAuthGate({ children }) {
 
   // ── Shared layout wrapper ───────────────────────────────────────────────────
   const PageWrap = ({kids}) => (
-    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:56, paddingBottom:48, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes spin{to{transform:rotate(360deg);}} @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} .za-btn{transition:all 0.2s;} .za-btn:hover{transform:translateY(-2px);} .za-btn:active{transform:scale(0.97);}`}</style>
+    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:56, paddingBottom:48, paddingLeft:24, paddingRight:24, fontFamily:"'Inter',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes spin{to{transform:rotate(360deg);}} @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} .za-btn{transition:all 0.2s;} .za-btn:hover{transform:translateY(-2px);} .za-btn:active{transform:scale(0.97);}`}</style>
       <div style={{ position:"fixed", top:"-5%", left:"50%", transform:"translateX(-50%)", width:"80vw", height:"50vh", background:"radial-gradient(ellipse,rgba(0,100,255,0.1) 0%,transparent 70%)", pointerEvents:"none", zIndex:0 }} />
       <div style={{ width:"100%", maxWidth:440, position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", animation:"fadeUp 0.4s ease" }}>
         {/* Logo */}
         <div style={{ width:90, height:90, background:"linear-gradient(135deg,#1A8FFF,#0044CC)", borderRadius:24, display:"flex", alignItems:"center", justifyContent:"center", fontSize:48, marginBottom:22, boxShadow:"0 10px 40px rgba(0,100,255,0.4)" }}>🔥</div>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:clamp(28,5,38), fontWeight:800, letterSpacing:"0.05em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:10, textAlign:"center" }}>ZIMAMOTO AI</div>
+        <div style={{ fontFamily:"'Inter',sans-serif", fontSize:clamp(28,5,38), fontWeight:800, letterSpacing:"0.05em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:10, textAlign:"center" }}>ZIMAMOTO AI</div>
         <div style={{ fontSize:15, fontWeight:500, color:"rgba(200,220,255,0.75)", marginBottom:36, textAlign:"center", lineHeight:1.6 }}>Your AI-Powered Exam Preparation Partner</div>
         {kids}
       </div>
@@ -712,36 +712,36 @@ function ZimamoApp() {
   const muted = dark ? "#4A6080" : "#7A8EB0";
 
   return (
-    <div style={{ fontFamily:"'Outfit','Segoe UI',sans-serif", background:bg, minHeight:"100vh", color: dark?"#E8EDF5":"#1a1f2e", display:"flex", flexDirection: isMobile?"column":"row", position:"relative", overflow:"hidden" }}>
+    <div style={{ fontFamily:"'Inter','Segoe UI',sans-serif", background:bg, minHeight:"100vh", color: dark?"#E8EDF5":"#1a1f2e", display:"flex", flexDirection: isMobile?"column":"row", position:"relative", overflow:"hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0;} html,body,#root{width:100%;min-height:100vh;overflow-x:hidden;}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;} html,body,#root{width:100%;min-height:100vh;overflow-x:hidden;font-family:'Inter',sans-serif;}
         ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2a3a5c;border-radius:4px;}
-        textarea,input,select{font-family:inherit;}
+        textarea,input,select,button{font-family:'Inter',sans-serif;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
         @keyframes spin{to{transform:rotate(360deg);}}
         .fade-up{animation:fadeUp 0.3s ease forwards;}
-        .glow-text{font-weight:bold;background:linear-gradient(0deg,#ff4500,#ff8c00,#ffff00,#ff4500);background-size:100% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fireGlow 2s linear infinite;}
+        .glow-text{font-weight:800;background:linear-gradient(0deg,#ff4500,#ff8c00,#ffff00,#ff4500);background-size:100% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fireGlow 2s linear infinite;}
         @keyframes fireGlow{0%{background-position:0% 100%;}50%{background-position:0% 0%;}100%{background-position:0% 100%;}}
-        .z-btn{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-radius:12px;transition:all 0.2s;}
-        .z-btn-primary{background:linear-gradient(135deg,#00C6FF,#0072FF);color:white;padding:12px 24px;font-size:14px;}
+        .z-btn{border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;border-radius:12px;transition:all 0.2s;}
+        .z-btn-primary{background:linear-gradient(135deg,#00C6FF,#0072FF);color:white;padding:12px 24px;font-size:14px;font-weight:500;}
         .z-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,114,255,0.35);}
         .z-btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
-        .z-input{background:#0D1525;border:1px solid #1E2D4A;border-radius:10px;color:#E8EDF5;padding:11px 14px;font-size:14px;width:100%;outline:none;transition:border-color 0.2s;}
+        .z-input{background:#0D1525;border:1px solid #1E2D4A;border-radius:10px;color:#E8EDF5;padding:11px 14px;font-size:14px;width:100%;outline:none;transition:border-color 0.2s;font-family:'Inter',sans-serif;font-weight:400;}
         .z-input:focus{border-color:#0072FF;}
         .upload-zone{border:2px dashed #1E2D4A;border-radius:16px;padding:36px 20px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,114,255,0.02);}
         .upload-zone:hover{border-color:#0072FF;background:rgba(0,114,255,0.07);}
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
-        .modal-box{background:#0D1525;border:1px solid #1E2D4A;border-radius:22px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:24px;}
-        .pill-btn{border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
-        .tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;}
-        .nav-bottom{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;transition:all 0.2s;border:none;background:none;font-family:inherit;}
+        .modal-box{background:#0D1525;border:1px solid #1E2D4A;border-radius:22px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:24px;font-family:'Inter',sans-serif;}
+        .pill-btn{border-radius:20px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all 0.2s;white-space:nowrap;flex-shrink:0;font-family:'Inter',sans-serif;}
+        .tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;font-family:'Inter',sans-serif;}
+        .nav-bottom{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;transition:all 0.2s;border:none;background:none;font-family:'Inter',sans-serif;}
         .nav-bottom.active{background:rgba(0,114,255,0.15);}
-        .nav-side{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:12px;cursor:pointer;border:none;background:none;font-family:inherit;width:100%;text-align:left;transition:all 0.2s;font-size:14px;font-weight:500;}
+        .nav-side{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:12px;cursor:pointer;border:none;background:none;font-family:'Inter',sans-serif;width:100%;text-align:left;transition:all 0.2s;font-size:14px;font-weight:500;}
         .nav-side:hover{background:rgba(0,114,255,0.1);}
-        .nav-side.active{background:rgba(0,114,255,0.18);color:#0072FF;font-weight:700;}
-        .puter-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#10B981;}
+        .nav-side.active{background:rgba(0,114,255,0.18);color:#0072FF;font-weight:600;}
+        .puter-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#10B981;font-family:'Inter',sans-serif;}
         .spinner{width:12px;height:12px;border:2px solid rgba(16,185,129,0.3);border-top-color:#10B981;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
         .dots-stream{display:inline-flex;gap:4px;align-items:center;}
         .dot{width:6px;height:6px;border-radius:50%;background:#0072FF;display:inline-block;}
@@ -756,7 +756,7 @@ function ZimamoApp() {
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, paddingLeft:4 }}>
             <div style={{ width:38, height:38, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🔥</div>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
+              <div style={{ fontFamily:"'Inter',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
               <div style={{ fontSize:10, color:muted }}>Study AI · v2.0</div>
             </div>
           </div>
@@ -800,7 +800,7 @@ function ZimamoApp() {
           {/* Mobile header */}
           {isMobile && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px 0" }}>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
+              <div style={{ fontFamily:"'Inter',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 {!pwaInstalled && (
                   <button onClick={handleInstallClick} style={{ background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:20, color:"white", fontWeight:700, fontSize:11, cursor:"pointer", padding:"5px 14px" }}>
@@ -860,7 +860,7 @@ function MarkdownText({ text, isUser = false }) {
     if (/^---+$/.test(line.trim())) { i++; continue; }
     if (/^#{1,2}\s/.test(line)) {
       const level = line.match(/^#+/)[0].length;
-      elements.push(<div key={i} style={{ fontWeight:800, fontSize: level===1?16:14, marginTop:12, marginBottom:5, color: isUser?"white":"#0072FF", fontFamily:"'Syne',sans-serif" }}>{renderInline(line.replace(/^#+\s*/,""), isUser)}</div>);
+      elements.push(<div key={i} style={{ fontWeight:800, fontSize: level===1?16:14, marginTop:12, marginBottom:5, color: isUser?"white":"#0072FF", fontFamily:"'Inter',sans-serif" }}>{renderInline(line.replace(/^#+\s*/,""), isUser)}</div>);
       i++; continue;
     }
     if (/^###\s/.test(line)) {
@@ -1221,7 +1221,7 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:40, height:40, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:11, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🔥</div>
           <div>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?18:22, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
+            <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?18:22, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
             <div style={{ fontSize:11, color:muted }}>Your AI Study Buddy</div>
           </div>
         </div>
@@ -1304,7 +1304,7 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
       {stage==="processing" && (
         <div className="fade-up" style={{ textAlign:"center", padding:"40px 20px" }}>
           <div style={{ fontSize:58, marginBottom:16 }}>🧠</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }} className="glow-text">Analyzing....</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }} className="glow-text">Analyzing....</div>
           <div style={{ fontSize:12, color:muted, marginBottom:20 }}>powered by Groq</div>
           <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:24 }}>
             {[0,1,2,3].map(i=><div key={i} style={{ width:9, height:9, borderRadius:"50%", background:"#0072FF", animation:`pulse 1.4s ease-in-out ${i*0.22}s infinite` }} />)}
@@ -1556,7 +1556,7 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
 
   return (
     <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Discussion Rooms</div>
+      <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Discussion Rooms</div>
       <p style={{ fontSize:13, color:muted, marginBottom:18 }}>Join a live study session. ZIMAMOTO AI assists in every room.</p>
       <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:20, paddingBottom:4 }}>
         {[{id:"all",label:"All",icon:""},...MAJORS.slice(0,7)].map(m=>(
@@ -1697,7 +1697,7 @@ useEffect(() => {
           <div><div style={{ fontWeight:700 }}>{activePost.author}</div><div style={{ fontSize:12, color:muted }}>{activePost.date}</div></div>
           <span className="tag" style={{ marginLeft:"auto", background:`${cc}20`, color:cc }}>{activePost.category}</span>
         </div>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?20:26, fontWeight:800, lineHeight:1.3, marginBottom:20 }}>{activePost.title}</h1>
+        <h1 style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?20:26, fontWeight:800, lineHeight:1.3, marginBottom:20 }}>{activePost.title}</h1>
         <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:16, padding:22, fontSize:14, lineHeight:1.9, color: dark?"#CBD5E1":"#374151", whiteSpace:"pre-wrap" }}>{activePost.content}</div>
       </div>
     );
@@ -1705,7 +1705,7 @@ useEffect(() => {
 
   return (
     <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Advice Room</div>
+      <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Advice Room</div>
       <p style={{ fontSize:13, color:muted, marginBottom:18 }}>Peer advice or chat with ZIMAMOTO AI</p>
       <div style={{ display:"flex", gap:8, marginBottom:22 }}>
         {[{id:"feed",label:"📰 Blog Feed"},{id:"ai",label:"⚡ Ask AI"}].map(v=>(
@@ -1830,7 +1830,7 @@ function SettingsPage({ user, setUser, dark, isMobile, onSignOut }) {
 
   return (
     <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:22 }}>Settings</div>
+      <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:22 }}>Settings</div>
 
       <div style={{ background:"linear-gradient(135deg,rgba(0,114,255,0.12),rgba(124,58,237,0.08))", border:"1px solid rgba(0,114,255,0.22)", borderRadius:18, padding:20, marginBottom:20, display:"flex", alignItems:"center", gap:14 }}>
         <div style={{ width:60, height:60, borderRadius:"50%", background:`${user.color}22`, border:`3px solid ${user.color}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, fontWeight:800, color:user.color }}>{user.avatar}</div>
@@ -1881,7 +1881,7 @@ function SettingsPage({ user, setUser, dark, isMobile, onSignOut }) {
         Sign Out
       </button>
       <div style={{ textAlign:"center", marginTop:24, color:muted, fontSize:12 }}>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
+        <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
         <div>©Mwasa Inc 2026 · Built for African Students</div>
         <div style={{ marginTop:4, opacity:0.6 }}>Version 2.0 · powered by Groq</div>
       </div>

@@ -1477,18 +1477,19 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
 // ─── DISCUSS PAGE ─────────────────────────────────────────────────────────────
 function DiscussPage({ user, dark, isMobile, puterReady }) {
   const [activeRoom, setActiveRoom] = useState(null);
+  const [activeCat, setActiveCat] = useState("All");
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null);
   const [messages, setMessages] = useState([
     { id:1, sender:"Amina J.", avatar:"AJ", color:"#F59E0B", text:"Hey everyone! Let's start with integration by substitution.", time:"10:32", isAI:false },
     { id:2, sender:"ZIMAMOTO AI", avatar:"ZI", color:"#0072FF", text:"Great topic! Integration by substitution works by replacing a complex expression with a simpler variable u. Steps: 1) Choose u wisely, 2) Compute du/dx, 3) Substitute both, 4) Integrate, 5) Back-substitute.", time:"10:32", isAI:true },
     { id:3, sender:"Brian O.", avatar:"BO", color:"#10B981", text:"Can someone explain when to use substitution vs integration by parts?", time:"10:35", isAI:false },
   ]);
   const [input, setInput] = useState("");
-  const [filter, setFilter] = useState("all");
   const messagesEndRef = useRef();
-  const bg = dark?"#0D1525":"#fff";
   const border = dark?"#1E2D4A":"#DDE5F5";
-  const muted = dark?"#4A6080":"#7A8EB0";
-  const pad = isMobile?"16px":"32px 40px";
+  const muted  = dark?"#4A6080":"#7A8EB0";
 
   useEffect(()=>{ messagesEndRef.current?.scrollIntoView({behavior:"smooth"}); }, [messages]);
 
@@ -1498,7 +1499,6 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
     const now = new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
     setMessages(prev=>[...prev,{ id:Date.now(), sender:user.name, avatar:user.avatar, color:user.color, text, time:now, isAI:false }]);
     setInput("");
-    // Always respond — ZIMAMOTO AI participates in all messages
     const aiId = Date.now()+1;
     setMessages(prev=>[...prev,{ id:aiId, sender:"ZIMAMOTO AI", avatar:"ZI", color:"#0072FF", text:"", time:now, isAI:true, streaming:true }]);
     try {
@@ -1513,13 +1513,13 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
     } catch(err) { setMessages(prev=>prev.map(m=>m.id===aiId?{...m,text:"⚠️ Could not connect. Please try again.",streaming:false}:m)); }
   };
 
-  const filteredRooms = filter==="all"?DISCUSSION_ROOMS:DISCUSSION_ROOMS.filter(r=>r.major===filter);
-
+  // ── Active room (chat) view ────────────────────────────────────────────────
   if (activeRoom) {
     const room = DISCUSSION_ROOMS.find(r=>r.id===activeRoom);
+    const bg2 = dark?"#0D1525":"#fff";
     return (
       <div style={{ display:"flex", flexDirection:"column", height: isMobile?"calc(100vh - 65px)":"100vh" }}>
-        <div style={{ padding:"14px 20px", background: dark?"#080C14":"#F0F4FF", borderBottom:`1px solid ${border}`, display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ padding:"14px 20px", background:dark?"#080C14":"#F0F4FF", borderBottom:`1px solid ${border}`, display:"flex", alignItems:"center", gap:10 }}>
           <button onClick={()=>setActiveRoom(null)} style={{ background:"none", border:"none", color:muted, cursor:"pointer", fontSize:22 }}>←</button>
           <div style={{ flex:1 }}>
             <div style={{ fontWeight:700, fontSize:16 }}>{room.subject}</div>
@@ -1532,21 +1532,21 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
         </div>
         <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", display:"flex", flexDirection:"column", gap:12 }}>
           {messages.map(msg=>(
-            <div key={msg.id} style={{ display:"flex", gap:10, flexDirection: msg.sender===user.name?"row-reverse":"row" }}>
-              <div style={{ width:36, height:36, borderRadius:"50%", background: msg.isAI?"linear-gradient(135deg,#00C6FF,#0072FF)":`${msg.color}22`, border:`2px solid ${msg.color}55`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color: msg.isAI?"white":msg.color, flexShrink:0 }}>{msg.avatar}</div>
-              <div style={{ maxWidth: isMobile?"76%":"60%" }}>
-                <div style={{ fontSize:11, color:muted, marginBottom:3, textAlign: msg.sender===user.name?"right":"left" }}>
+            <div key={msg.id} style={{ display:"flex", gap:10, flexDirection:msg.sender===user.name?"row-reverse":"row" }}>
+              <div style={{ width:36, height:36, borderRadius:"50%", background:msg.isAI?"linear-gradient(135deg,#00C6FF,#0072FF)":`${msg.color}22`, border:`2px solid ${msg.color}55`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:msg.isAI?"white":msg.color, flexShrink:0 }}>{msg.avatar}</div>
+              <div style={{ maxWidth:isMobile?"76%":"60%" }}>
+                <div style={{ fontSize:11, color:muted, marginBottom:3, textAlign:msg.sender===user.name?"right":"left" }}>
                   {msg.isAI?<span style={{ color:"#E25822", fontWeight:700 }}>⚡ ZIMAMOTO AI</span>:msg.sender} · {msg.time}
                 </div>
-                <div style={{ background: msg.sender===user.name?"linear-gradient(135deg,#00C6FF,#0072FF)":(msg.isAI?"rgba(0,114,255,0.1)":bg), border: msg.sender===user.name?"none":`1px solid ${msg.isAI?"rgba(0,114,255,0.3)":border}`, borderRadius: msg.sender===user.name?"14px 4px 14px 14px":"4px 14px 14px 14px", padding:"10px 14px", color: msg.sender===user.name?"white":(dark?"#CBD5E1":"#374151"), minHeight:40 }}>
-  {msg.text ? <MarkdownText text={msg.text} isUser={msg.sender===user.name} /> : (msg.streaming && <StreamDots />)}
-</div>
+                <div style={{ background:msg.sender===user.name?"linear-gradient(135deg,#00C6FF,#0072FF)":(msg.isAI?"rgba(0,114,255,0.1)":bg2), border:msg.sender===user.name?"none":`1px solid ${msg.isAI?"rgba(0,114,255,0.3)":border}`, borderRadius:msg.sender===user.name?"14px 4px 14px 14px":"4px 14px 14px 14px", padding:"10px 14px", color:msg.sender===user.name?"white":(dark?"#CBD5E1":"#374151"), minHeight:40 }}>
+                  {msg.text ? <MarkdownText text={msg.text} isUser={msg.sender===user.name} /> : (msg.streaming && <StreamDots />)}
+                </div>
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div style={{ padding:"12px 20px", background: dark?"#080C14":"#F0F4FF", borderTop:`1px solid ${border}`, display:"flex", gap:8 }}>
+        <div style={{ padding:"12px 20px", background:dark?"#080C14":"#F0F4FF", borderTop:`1px solid ${border}`, display:"flex", gap:8 }}>
           <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder="Ask a question (AI responds automatically)..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} />
           <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} onClick={sendMsg}>↑</button>
         </div>
@@ -1554,44 +1554,157 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
     );
   }
 
+  // ── Category mapping ──────────────────────────────────────────────────────
+  const CATS = ["All","Science & Mathematics","Social Sciences","Business & Economics","Law & Governance","Humanities"];
+  const MAJOR_TO_CAT = { science:"Science & Mathematics", social:"Social Sciences", business:"Business & Economics", law:"Law & Governance", humanities:"Humanities", ict:"Science & Mathematics", medical:"Science & Mathematics" };
+
+  const filteredRooms = DISCUSSION_ROOMS.filter(r => {
+    const catMatch = activeCat==="All" || MAJOR_TO_CAT[r.major]===activeCat;
+    const searchMatch = !search || r.subject?.toLowerCase().includes(search.toLowerCase()) || r.topic?.toLowerCase().includes(search.toLowerCase());
+    return catMatch && searchMatch;
+  });
+
+  // ── Lobby view (new premium design) ──────────────────────────────────────
+  const pageBg = dark ? "linear-gradient(160deg,#06091A 0%,#090D22 50%,#060912 100%)" : "linear-gradient(160deg,#F0F4FF,#EEF2FF)";
+
   return (
-    <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Discussion Rooms</div>
-      <p style={{ fontSize:13, color:muted, marginBottom:18 }}>Join a live study session. ZIMAMOTO AI assists in every room.</p>
-      <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:20, paddingBottom:4 }}>
-        {[{id:"all",label:"All",icon:""},...MAJORS.slice(0,7)].map(m=>(
-          <button key={m.id} className="pill-btn" onClick={()=>setFilter(m.id)}
-            style={{ background: filter===m.id?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, borderColor: filter===m.id?"transparent":border, color: filter===m.id?"white":muted }}>
-            {m.icon?`${m.icon} `:""}{m.label||"All"}
-          </button>
-        ))}
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12 }}>
-        {filteredRooms.map((room,i)=>{
-          const mi = MAJORS.find(m=>m.id===room.major);
-          return (
-            <div key={room.id} className="fade-up" style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16, cursor:"pointer", transition:"all 0.2s", animationDelay:`${i*0.06}s` }}
-              onClick={()=>setActiveRoom(room.id)}
-              onMouseEnter={e=>e.currentTarget.style.borderColor="#0072FF55"}
-              onMouseLeave={e=>e.currentTarget.style.borderColor=border}>
-              <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-                <div style={{ width:46, height:46, borderRadius:12, background:`${mi?.color||"#3B82F6"}15`, border:`1.5px solid ${mi?.color||"#3B82F6"}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{mi?.icon||"📚"}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                    <span style={{ fontWeight:700, fontSize:15 }}>{room.subject}</span>
-                    {room.active&&<><div style={{ width:6, height:6, borderRadius:"50%", background:"#10B981", animation:"pulse 2s infinite" }}/><span style={{ fontSize:10, color:"#10B981", fontWeight:700 }}>ONLINE</span></>}
+    <div style={{ minHeight:"100vh", background:pageBg, fontFamily:"'Outfit','Inter',sans-serif", padding: isMobile?"16px":"40px 40px 72px", position:"relative", overflowX:"hidden" }}>
+      {/* Ambient glows */}
+      <div style={{ position:"fixed", top:"-80px", left:"-60px", width:480, height:480, background:"radial-gradient(ellipse,rgba(50,70,255,0.06) 0%,transparent 65%)", pointerEvents:"none", zIndex:0 }} />
+      <div style={{ position:"fixed", bottom:0, right:"-60px", width:400, height:400, background:"radial-gradient(ellipse,rgba(110,50,240,0.05) 0%,transparent 65%)", pointerEvents:"none", zIndex:0 }} />
+
+      <div style={{ maxWidth: isMobile?"100%":1160, margin:"0 auto", position:"relative", zIndex:1 }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:32, flexWrap:"wrap" }}>
+          <div>
+            <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?28:38, fontWeight:800, color:dark?"#fff":"#0A0F28", lineHeight:1.1, marginBottom:8 }}>Discussion Rooms</h1>
+            <p style={{ fontSize:13, color:muted }}>Learn together. Share ideas. Grow your knowledge.</p>
+            <div style={{ display:"flex", gap:10, marginTop:20 }}>
+              <button onClick={()=>{setActiveCat("All");setSearch("");}}
+                style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(90deg,#2A50FF,#4830FF)", border:"none", borderRadius:11, padding:"12px 22px", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 18px rgba(50,70,255,0.4)", transition:"all 0.2s" }}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(50,70,255,0.5)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(50,70,255,0.4)";}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                Explore Rooms
+              </button>
+              <button onClick={()=>setShowModal(true)}
+                style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(90,50,200,0.12)", border:"1px solid rgba(120,80,255,0.4)", borderRadius:11, padding:"12px 22px", color:"#A080FF", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s" }}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(90,50,200,0.22)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(90,50,200,0.12)";e.currentTarget.style.transform="";}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create Room
+              </button>
+            </div>
+          </div>
+          {/* Search */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, background:dark?"rgba(12,18,40,0.9)":"rgba(240,244,255,0.9)", border:`1px solid ${dark?"rgba(50,70,160,0.22)":border}`, borderRadius:13, padding:"0 14px", height:46, minWidth:isMobile?"100%":260, marginTop:4, transition:"border-color 0.2s" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search rooms..."
+              style={{ background:"transparent", border:"none", outline:"none", color:dark?"#E2E8F8":"#1a1f2e", fontSize:13, flex:1, fontFamily:"inherit" }} />
+          </div>
+        </div>
+
+        {/* Category filters */}
+        <div style={{ display:"flex", gap:8, marginBottom:28, flexWrap:"wrap", alignItems:"center" }}>
+          {CATS.map(cat=>{
+            const active = activeCat===cat;
+            return (
+              <button key={cat} onClick={()=>setActiveCat(cat)}
+                style={{ padding:"7px 16px", borderRadius:100, background:active?"linear-gradient(90deg,#2A50FF,#4830FF)":(dark?"rgba(12,18,40,0.8)":"rgba(230,235,255,0.8)"), border:active?"1px solid rgba(70,100,255,0.4)":`1px solid ${dark?"rgba(50,70,160,0.18)":border}`, color:active?"#fff":muted, fontSize:12, fontWeight:active?700:500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.18s", boxShadow:active?"0 3px 12px rgba(50,70,255,0.3)":"none", whiteSpace:"nowrap" }}
+                onMouseEnter={e=>{if(!active){e.currentTarget.style.borderColor="rgba(70,100,255,0.35)";e.currentTarget.style.color=dark?"#7A99CC":"#3A5ABB";}}}
+                onMouseLeave={e=>{if(!active){e.currentTarget.style.borderColor=dark?"rgba(50,70,160,0.18)":border;e.currentTarget.style.color=muted;}}}>
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Room grid */}
+        {filteredRooms.length > 0 ? (
+          <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:18, marginBottom:36 }}>
+            {filteredRooms.map(room=>{
+              const mi = MAJORS.find(m=>m.id===room.major);
+              const hov = hoveredCard===room.id;
+              return (
+                <div key={room.id}
+                  onMouseEnter={()=>setHoveredCard(room.id)}
+                  onMouseLeave={()=>setHoveredCard(null)}
+                  onClick={()=>setActiveRoom(room.id)}
+                  style={{ background:hov?(dark?"linear-gradient(135deg,rgba(16,24,54,0.95),rgba(12,16,36,0.95))":"linear-gradient(135deg,#E8EDFF,#EEF2FF)"):(dark?"linear-gradient(135deg,rgba(12,18,42,0.85),rgba(8,12,30,0.85))":"rgba(255,255,255,0.9)"), border:`1px solid ${hov?"rgba(70,100,255,0.32)":(dark?"rgba(50,70,160,0.16)":border)}`, borderRadius:18, padding:"20px 20px 16px", cursor:"pointer", transition:"all 0.25s", transform:hov?"translateY(-3px)":"none", boxShadow:hov?"0 12px 36px rgba(50,80,255,0.14)":"0 4px 16px rgba(0,0,0,0.08)" }}>
+                  {/* Top row */}
+                  <div style={{ display:"flex", alignItems:"flex-start", gap:14, marginBottom:14 }}>
+                    <div style={{ width:52, height:52, borderRadius:13, background:mi?`${mi.color}20`:"rgba(50,80,255,0.15)", border:`1.5px solid ${mi?mi.color+"40":"rgba(50,80,255,0.3)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{mi?.icon||"📚"}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:16, fontWeight:700, color:dark?"#DDE5F5":"#0A0F28" }}>{room.subject}</span>
+                        {room.active && (
+                          <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, color:"#22C55E", background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.22)", borderRadius:20, padding:"2px 8px", flexShrink:0 }}>
+                            <span style={{ width:5, height:5, borderRadius:"50%", background:"#22C55E", display:"inline-block" }} /> ONLINE
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize:12, color:muted, lineHeight:1.5 }}>{room.topic}</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize:12, color:muted, marginBottom:10 }}>{room.topic}</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:14, fontSize:12, color:muted }}>
-                    <span>👥 {room.members}</span><span>💬 {room.msgs}</span>
-                    <span style={{ color:"#0072FF", fontWeight:700, marginLeft:"auto" }}>Join →</span>
+                  {/* Footer */}
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <div style={{ display:"flex", gap:14 }}>
+                      <span style={{ fontSize:12, color:muted, display:"flex", alignItems:"center", gap:4 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        {room.members}
+                      </span>
+                      <span style={{ fontSize:12, color:muted, display:"flex", alignItems:"center", gap:4 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        {room.msgs}
+                      </span>
+                    </div>
+                    <span style={{ padding:"7px 14px", borderRadius:9, background:hov?"linear-gradient(90deg,#2A50FF,#4830FF)":"transparent", border:"1px solid rgba(70,100,255,0.4)", color:hov?"#fff":"#6080FF", fontSize:12, fontWeight:600, display:"flex", alignItems:"center", gap:4, transition:"all 0.2s", boxShadow:hov?"0 4px 12px rgba(50,70,255,0.3)":"none" }}>
+                      Join Room
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </span>
                   </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ textAlign:"center", padding:"60px 0", color:muted, fontSize:15 }}>No rooms match your search or filter.</div>
+        )}
+
+        {/* Bottom CTA */}
+        <div style={{ background:dark?"linear-gradient(135deg,rgba(12,18,46,0.92),rgba(16,10,36,0.92))":"linear-gradient(135deg,#E8EDFF,#EEF0FF)", border:`1px dashed ${dark?"rgba(90,60,220,0.28)":"rgba(80,60,200,0.25)"}`, borderRadius:20, padding:"26px 32px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:18 }}>
+            <div style={{ width:48, height:48, borderRadius:"50%", background:"rgba(90,60,220,0.12)", border:"1px solid rgba(90,60,220,0.28)", display:"flex", alignItems:"center", justifyContent:"center", color:"#9A6FFF", flexShrink:0, fontSize:20 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
-          );
-        })}
+            <div>
+              <div style={{ fontSize:15, fontWeight:700, color:dark?"#DDE5F5":"#0A0F28", marginBottom:3 }}>Can't find what you're looking for?</div>
+              <div style={{ fontSize:12, color:muted, lineHeight:1.5 }}>Create your own discussion room and build your learning community.</div>
+            </div>
+          </div>
+          <button onClick={()=>setShowModal(true)}
+            style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(90deg,#6030FF,#9030FF)", border:"none", borderRadius:13, padding:"13px 26px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", flexShrink:0, boxShadow:"0 4px 18px rgba(90,40,255,0.38)", transition:"all 0.2s" }}
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(90,40,255,0.5)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(90,40,255,0.38)";}}>
+            Create Your Room
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
       </div>
+
+      {/* Coming Soon Modal */}
+      {showModal && (
+        <div onClick={()=>setShowModal(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:999, padding:20 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:dark?"linear-gradient(135deg,rgba(14,20,46,0.98),rgba(8,12,28,0.98))":"#fff", border:"1px solid rgba(90,110,255,0.22)", borderRadius:22, padding:"38px 34px", width:"100%", maxWidth:420, textAlign:"center", boxShadow:"0 0 60px rgba(70,90,255,0.18),0 24px 56px rgba(0,0,0,0.6)", position:"relative" }}>
+            <button onClick={()=>setShowModal(false)} style={{ position:"absolute", top:14, right:14, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:"50%", width:30, height:30, color:"#667799", cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"inherit" }}>✕</button>
+            <div style={{ fontSize:48, marginBottom:14 }}>🚀</div>
+            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, color:dark?"#fff":"#0A0F28", marginBottom:10 }}>Coming Soon!</div>
+            <div style={{ fontSize:13, color:muted, lineHeight:1.7, marginBottom:28 }}>Discussion room creation is currently under development and will be available in a future update. Stay tuned!</div>
+            <button onClick={()=>setShowModal(false)} style={{ width:"100%", padding:"13px", background:"linear-gradient(90deg,#4060FF,#7040FF)", border:"none", borderRadius:11, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 18px rgba(80,80,255,0.35)" }}>Got It</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

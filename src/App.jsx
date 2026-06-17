@@ -44,7 +44,7 @@ function InstallModal({ onClose }) {
             <div style={{ fontSize:13, color:"#CBD5E1", marginBottom:16, lineHeight:1.7 }}>To install on iPhone/iPad:</div>
             {[
               { icon:"1️⃣", text:'Open this page in Safari (not Chrome)' },
-              { icon:"2️⃣", text:'Tap the Share button at the bottom (□↑)' },
+              { icon:"2️⃣", text:'Tap the Share button at the bottom (📤)' },
               { icon:"3️⃣", text:'Scroll down and tap "Add to Home Screen"' },
               { icon:"4️⃣", text:'Tap "Add" — done! 🎉' },
             ].map((s,i) => (
@@ -191,7 +191,7 @@ const DISCUSSION_ROOMS = [
   { id: 2, subject: "Constitutional Law", major: "law", members: 9, active: true, host: "Yassin J.", topic: "Case study: Marbury v. Madison", msgs: 23 },
   { id: 3, subject: "Microeconomics", major: "business", members: 21, active: true, host: "Dr.Grace ", topic: "Market equilibrium problems", msgs: 88 },
   { id: 4, subject: "Data Structures", major: "ict", members: 17, active: false, host: "Ree O.", topic: "Trees and Graph algorithms", msgs: 34 },
-  { id: 5, subject: "Organic Chemistry", major: "medical", members: 11, active: true, host: "Fatuma S.", topic: "Reaction mechanisms review", msgs: 61 },
+  { id: 5, subject: "Organic Chemistry", major: "medical", members: 11, active: true, host: "Deborah S.", topic: "Reaction mechanisms review", msgs: 61 },
   { id: 6, subject: "African History", major: "humanities", members: 6, active: false, host: "Careen K.", topic: "Colonial era political structures", msgs: 19 },
 ];
 

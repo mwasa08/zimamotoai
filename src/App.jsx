@@ -36,7 +36,7 @@ function InstallModal({ onClose }) {
     <div style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.8)", zIndex:1000, display:"flex", alignItems:"center", justifyContent:"center", padding:20, backdropFilter:"blur(8px)" }}>
       <div style={{ background:"#0D1525", border:"1px solid #1E2D4A", borderRadius:22, width:"100%", maxWidth:400, padding:28 }}>
         <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:20 }}>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:18 }}>📲 Install ZIMAMOTO AI</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:800, fontSize:18 }}>📲 Install ZIMAMOTO AI</div>
           <button onClick={onClose} style={{ background:"none", border:"none", color:"#4A6080", fontSize:22, cursor:"pointer" }}>✕</button>
         </div>
         {isIOS ? (
@@ -44,7 +44,7 @@ function InstallModal({ onClose }) {
             <div style={{ fontSize:13, color:"#CBD5E1", marginBottom:16, lineHeight:1.7 }}>To install on iPhone/iPad:</div>
             {[
               { icon:"1️⃣", text:'Open this page in Safari (not Chrome)' },
-              { icon:"2️⃣", text:'Tap the Share button at the bottom (📤)' },
+              { icon:"2️⃣", text:'Tap the Share button at the bottom (□↑)' },
               { icon:"3️⃣", text:'Scroll down and tap "Add to Home Screen"' },
               { icon:"4️⃣", text:'Tap "Add" — done! 🎉' },
             ].map((s,i) => (
@@ -191,7 +191,7 @@ const DISCUSSION_ROOMS = [
   { id: 2, subject: "Constitutional Law", major: "law", members: 9, active: true, host: "Yassin J.", topic: "Case study: Marbury v. Madison", msgs: 23 },
   { id: 3, subject: "Microeconomics", major: "business", members: 21, active: true, host: "Dr.Grace ", topic: "Market equilibrium problems", msgs: 88 },
   { id: 4, subject: "Data Structures", major: "ict", members: 17, active: false, host: "Ree O.", topic: "Trees and Graph algorithms", msgs: 34 },
-  { id: 5, subject: "Organic Chemistry", major: "medical", members: 11, active: true, host: "Deborah S.", topic: "Reaction mechanisms review", msgs: 61 },
+  { id: 5, subject: "Organic Chemistry", major: "medical", members: 11, active: true, host: "Fatuma S.", topic: "Reaction mechanisms review", msgs: 61 },
   { id: 6, subject: "African History", major: "humanities", members: 6, active: false, host: "Careen K.", topic: "Colonial era political structures", msgs: 19 },
 ];
 
@@ -337,8 +337,8 @@ function OnboardingPage({ user, onComplete }) {
   };
 
   return (
-    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:48, paddingBottom:60, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} .ob-input:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.12);} .ob-btn{transition:all 0.2s;} .ob-btn:hover{transform:translateY(-1px);} .ob-btn:active{transform:scale(0.97);}  @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
+    <div style={{ minHeight:"100vh", width:"100vw", background:bg, display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:48, paddingBottom:60, paddingLeft:24, paddingRight:24, fontFamily:"'Inter',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} .ob-input:focus{border-color:#0072FF!important;box-shadow:0 0 0 3px rgba(0,114,255,0.12);} .ob-btn{transition:all 0.2s;} .ob-btn:hover{transform:translateY(-1px);} .ob-btn:active{transform:scale(0.97);}  @keyframes fadeSlide{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}`}</style>
 
       <div style={{ position:"fixed", top:"5%", left:"50%", transform:"translateX(-50%)", width:"70vw", height:"40vh", background:"radial-gradient(ellipse,rgba(0,114,255,0.08) 0%,transparent 70%)", pointerEvents:"none" }} />
 
@@ -347,7 +347,7 @@ function OnboardingPage({ user, onComplete }) {
         {/* Logo */}
         <div style={{ textAlign:"center", marginBottom:28 }}>
           <div style={{ width:52, height:52, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:14, display:"flex", alignItems:"center", justifyContent:"center", fontSize:26, margin:"0 auto 10px", boxShadow:"0 6px 20px rgba(0,114,255,0.3)" }}>🔥</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Set up your profile</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontSize:20, fontWeight:800, background:"linear-gradient(135deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent" }}>Set up your profile</div>
           <div style={{ fontSize:13, color:muted, marginTop:4 }}>Takes less than a minute</div>
         </div>
 
@@ -554,9 +554,6 @@ function GoogleAuthGate({ children }) {
       sessionStorage.removeItem(G_SESSION_KEY);
       localStorage.removeItem("zimamoto_user");
       localStorage.removeItem(ONBOARDING_KEY);
-      const studySessId = localStorage.getItem("zimamoto_study_session_id");
-      if (studySessId) localStorage.removeItem("zimamoto_study_chat_" + studySessId);
-      localStorage.removeItem("zimamoto_study_session_id");
       setSession(null); setScreen("landing"); setError("");
     };
     return () => { delete window.__zimaSignOut; };
@@ -572,13 +569,13 @@ function GoogleAuthGate({ children }) {
 
   // ── Shared layout wrapper ───────────────────────────────────────────────────
   const PageWrap = ({kids}) => (
-    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:56, paddingBottom:48, paddingLeft:24, paddingRight:24, fontFamily:"'Outfit',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Syne:wght@800&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes spin{to{transform:rotate(360deg);}} @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} .za-btn{transition:all 0.2s;} .za-btn:hover{transform:translateY(-2px);} .za-btn:active{transform:scale(0.97);}`}</style>
+    <div style={{ minHeight:"100vh", width:"100vw", background:"#080F1E", display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"flex-start", paddingTop:56, paddingBottom:48, paddingLeft:24, paddingRight:24, fontFamily:"'Inter',sans-serif", position:"fixed", top:0, left:0, right:0, bottom:0, overflowY:"scroll", overflowX:"hidden" }}>
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap'); *{box-sizing:border-box;margin:0;padding:0;} @keyframes spin{to{transform:rotate(360deg);}} @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}} .za-btn{transition:all 0.2s;} .za-btn:hover{transform:translateY(-2px);} .za-btn:active{transform:scale(0.97);}`}</style>
       <div style={{ position:"fixed", top:"-5%", left:"50%", transform:"translateX(-50%)", width:"80vw", height:"50vh", background:"radial-gradient(ellipse,rgba(0,100,255,0.1) 0%,transparent 70%)", pointerEvents:"none", zIndex:0 }} />
       <div style={{ width:"100%", maxWidth:440, position:"relative", zIndex:1, display:"flex", flexDirection:"column", alignItems:"center", animation:"fadeUp 0.4s ease" }}>
         {/* Logo */}
         <div style={{ width:90, height:90, background:"linear-gradient(135deg,#1A8FFF,#0044CC)", borderRadius:24, display:"flex", alignItems:"center", justifyContent:"center", fontSize:48, marginBottom:22, boxShadow:"0 10px 40px rgba(0,100,255,0.4)" }}>🔥</div>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontSize:clamp(28,5,38), fontWeight:800, letterSpacing:"0.05em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:10, textAlign:"center" }}>ZIMAMOTO AI</div>
+        <div style={{ fontFamily:"'Inter',sans-serif", fontSize:clamp(28,5,38), fontWeight:800, letterSpacing:"0.05em", background:"linear-gradient(90deg,#00C6FF,#0072FF)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", marginBottom:10, textAlign:"center" }}>ZIMAMOTO AI</div>
         <div style={{ fontSize:15, fontWeight:500, color:"rgba(200,220,255,0.75)", marginBottom:36, textAlign:"center", lineHeight:1.6 }}>Your AI-Powered Exam Preparation Partner</div>
         {kids}
       </div>
@@ -715,36 +712,36 @@ function ZimamoApp() {
   const muted = dark ? "#4A6080" : "#7A8EB0";
 
   return (
-    <div style={{ fontFamily:"'Outfit','Segoe UI',sans-serif", background:bg, minHeight:"100vh", color: dark?"#E8EDF5":"#1a1f2e", display:"flex", flexDirection: isMobile?"column":"row", position:"relative", overflow:"hidden" }}>
+    <div style={{ fontFamily:"'Inter','Segoe UI',sans-serif", background:bg, minHeight:"100vh", color: dark?"#E8EDF5":"#1a1f2e", display:"flex", flexDirection: isMobile?"column":"row", position:"relative", overflow:"hidden" }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Syne:wght@700;800&display=swap');
-        *{box-sizing:border-box;margin:0;padding:0;} html,body,#root{width:100%;min-height:100vh;overflow-x:hidden;}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+        *{box-sizing:border-box;margin:0;padding:0;} html,body,#root{width:100%;min-height:100vh;overflow-x:hidden;font-family:'Inter',sans-serif;}
         ::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:#2a3a5c;border-radius:4px;}
-        textarea,input,select{font-family:inherit;}
+        textarea,input,select,button{font-family:'Inter',sans-serif;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(14px);}to{opacity:1;transform:translateY(0);}}
         @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
         @keyframes spin{to{transform:rotate(360deg);}}
         .fade-up{animation:fadeUp 0.3s ease forwards;}
-        .glow-text{font-weight:bold;background:linear-gradient(0deg,#ff4500,#ff8c00,#ffff00,#ff4500);background-size:100% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fireGlow 2s linear infinite;}
+        .glow-text{font-weight:800;background:linear-gradient(0deg,#ff4500,#ff8c00,#ffff00,#ff4500);background-size:100% 300%;-webkit-background-clip:text;-webkit-text-fill-color:transparent;animation:fireGlow 2s linear infinite;}
         @keyframes fireGlow{0%{background-position:0% 100%;}50%{background-position:0% 0%;}100%{background-position:0% 100%;}}
-        .z-btn{border:none;cursor:pointer;font-family:inherit;font-weight:600;border-radius:12px;transition:all 0.2s;}
-        .z-btn-primary{background:linear-gradient(135deg,#00C6FF,#0072FF);color:white;padding:12px 24px;font-size:14px;}
+        .z-btn{border:none;cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;border-radius:12px;transition:all 0.2s;}
+        .z-btn-primary{background:linear-gradient(135deg,#00C6FF,#0072FF);color:white;padding:12px 24px;font-size:14px;font-weight:500;}
         .z-btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,114,255,0.35);}
         .z-btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none;}
-        .z-input{background:#0D1525;border:1px solid #1E2D4A;border-radius:10px;color:#E8EDF5;padding:11px 14px;font-size:14px;width:100%;outline:none;transition:border-color 0.2s;}
+        .z-input{background:#0D1525;border:1px solid #1E2D4A;border-radius:10px;color:#E8EDF5;padding:11px 14px;font-size:14px;width:100%;outline:none;transition:border-color 0.2s;font-family:'Inter',sans-serif;font-weight:400;}
         .z-input:focus{border-color:#0072FF;}
         .upload-zone{border:2px dashed #1E2D4A;border-radius:16px;padding:36px 20px;text-align:center;cursor:pointer;transition:all 0.2s;background:rgba(0,114,255,0.02);}
         .upload-zone:hover{border-color:#0072FF;background:rgba(0,114,255,0.07);}
         .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);}
-        .modal-box{background:#0D1525;border:1px solid #1E2D4A;border-radius:22px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:24px;}
-        .pill-btn{border-radius:20px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;transition:all 0.2s;white-space:nowrap;flex-shrink:0;}
-        .tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;}
-        .nav-bottom{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;transition:all 0.2s;border:none;background:none;font-family:inherit;}
+        .modal-box{background:#0D1525;border:1px solid #1E2D4A;border-radius:22px;width:100%;max-width:520px;max-height:88vh;overflow-y:auto;padding:24px;font-family:'Inter',sans-serif;}
+        .pill-btn{border-radius:20px;padding:6px 14px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid;transition:all 0.2s;white-space:nowrap;flex-shrink:0;font-family:'Inter',sans-serif;}
+        .tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;letter-spacing:0.05em;text-transform:uppercase;font-family:'Inter',sans-serif;}
+        .nav-bottom{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:8px 12px;border-radius:12px;transition:all 0.2s;border:none;background:none;font-family:'Inter',sans-serif;}
         .nav-bottom.active{background:rgba(0,114,255,0.15);}
-        .nav-side{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:12px;cursor:pointer;border:none;background:none;font-family:inherit;width:100%;text-align:left;transition:all 0.2s;font-size:14px;font-weight:500;}
+        .nav-side{display:flex;align-items:center;gap:12px;padding:11px 16px;border-radius:12px;cursor:pointer;border:none;background:none;font-family:'Inter',sans-serif;width:100%;text-align:left;transition:all 0.2s;font-size:14px;font-weight:500;}
         .nav-side:hover{background:rgba(0,114,255,0.1);}
-        .nav-side.active{background:rgba(0,114,255,0.18);color:#0072FF;font-weight:700;}
-        .puter-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#10B981;}
+        .nav-side.active{background:rgba(0,114,255,0.18);color:#0072FF;font-weight:600;}
+        .puter-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.3);border-radius:20px;padding:3px 10px;font-size:10px;font-weight:700;color:#10B981;font-family:'Inter',sans-serif;}
         .spinner{width:12px;height:12px;border:2px solid rgba(16,185,129,0.3);border-top-color:#10B981;border-radius:50%;animation:spin 0.8s linear infinite;flex-shrink:0;}
         .dots-stream{display:inline-flex;gap:4px;align-items:center;}
         .dot{width:6px;height:6px;border-radius:50%;background:#0072FF;display:inline-block;}
@@ -759,7 +756,7 @@ function ZimamoApp() {
           <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:20, paddingLeft:4 }}>
             <div style={{ width:38, height:38, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", fontSize:18 }}>🔥</div>
             <div>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
+              <div style={{ fontFamily:"'Inter',sans-serif", fontSize:16, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
               <div style={{ fontSize:10, color:muted }}>Study AI · v2.0</div>
             </div>
           </div>
@@ -803,7 +800,7 @@ function ZimamoApp() {
           {/* Mobile header */}
           {isMobile && (
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", padding:"12px 16px 0" }}>
-              <div style={{ fontFamily:"'Syne',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
+              <div style={{ fontFamily:"'Inter',sans-serif", fontSize:18, fontWeight:800 }} className="glow-text">ZIMAMOTO</div>
               <div style={{ display:"flex", alignItems:"center", gap:8 }}>
                 {!pwaInstalled && (
                   <button onClick={handleInstallClick} style={{ background:"linear-gradient(135deg,#00C6FF,#0072FF)", border:"none", borderRadius:20, color:"white", fontWeight:700, fontSize:11, cursor:"pointer", padding:"5px 14px" }}>
@@ -863,7 +860,7 @@ function MarkdownText({ text, isUser = false }) {
     if (/^---+$/.test(line.trim())) { i++; continue; }
     if (/^#{1,2}\s/.test(line)) {
       const level = line.match(/^#+/)[0].length;
-      elements.push(<div key={i} style={{ fontWeight:800, fontSize: level===1?16:14, marginTop:12, marginBottom:5, color: isUser?"white":"#0072FF", fontFamily:"'Syne',sans-serif" }}>{renderInline(line.replace(/^#+\s*/,""), isUser)}</div>);
+      elements.push(<div key={i} style={{ fontWeight:800, fontSize: level===1?16:14, marginTop:12, marginBottom:5, color: isUser?"white":"#0072FF", fontFamily:"'Inter',sans-serif" }}>{renderInline(line.replace(/^#+\s*/,""), isUser)}</div>);
       i++; continue;
     }
     if (/^###\s/.test(line)) {
@@ -1010,7 +1007,6 @@ function StudyAI({ user, dark, isMobile, puterReady }) {
   const [pendingFile, setPendingFile] = useState(null);
   const [isGlowFocused, setIsGlowFocused] = useState(false);
   const [chatStreaming, setChatStreaming] = useState(false);
-  const [studySessionId] = useState(() => localStorage.getItem("zimamoto_study_session_id") || Date.now().toString());
   const fileRef = useRef();
   const chatEndRef = useRef();
   const textareaRef = useRef();
@@ -1031,30 +1027,6 @@ function StudyAI({ user, dark, isMobile, puterReady }) {
 
   // Auto-scroll chat
   useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior:"smooth" }); }, [chatMessages]);
-
-  // Persist chat messages to localStorage whenever they change
-  useEffect(() => {
-    try {
-      if (chatMessages.length > 1) {
-        localStorage.setItem("zimamoto_study_chat_" + studySessionId, JSON.stringify(chatMessages));
-        localStorage.setItem("zimamoto_study_session_id", studySessionId);
-      }
-    } catch {}
-  }, [chatMessages, studySessionId]);
-
-  // Restore chat messages from localStorage on mount
-  useEffect(() => {
-    try {
-      const savedId = localStorage.getItem("zimamoto_study_session_id");
-      if (savedId) {
-        const saved = localStorage.getItem("zimamoto_study_chat_" + savedId);
-        if (saved) {
-          const parsed = JSON.parse(saved);
-          if (parsed.length > 1) setChatMessages(parsed);
-        }
-      }
-    } catch {}
-  }, []);
 
   // Auto-resize textarea
   const resizeTextarea = () => {
@@ -1227,11 +1199,11 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
       setSummary(summary); setQuestions(questions); setStage("results");
       setChatMessages(prev => [...prev, { id:Date.now(), role:"ai", text:`✅ Analysis complete! I found **${questions.length} exam questions** and a **6-section smart summary** for **${activeFile.name}**. Tap the tabs below to explore your study pack.` }]);
 
-      // Save to history (up to 20 entries, same file can appear multiple times)
+      // Save to history
       try {
         const existing = JSON.parse(localStorage.getItem("zimamoto_study_history")||"[]");
         const entry = { id:Date.now(), fileName:activeFile.name, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}), summary, questions };
-        const updated = [entry, ...existing].slice(0,20);
+        const updated = [entry, ...existing.filter(e=>e.fileName!==file.name)].slice(0,15);
         localStorage.setItem("zimamoto_study_history", JSON.stringify(updated));
       } catch {}
 
@@ -1249,13 +1221,13 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
         <div style={{ display:"flex", alignItems:"center", gap:10 }}>
           <div style={{ width:40, height:40, background:"linear-gradient(135deg,#00C6FF,#0072FF)", borderRadius:11, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20 }}>🔥</div>
           <div>
-            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?18:22, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
+            <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?18:22, fontWeight:800 }} className="glow-text">ZIMAMOTO AI</div>
             <div style={{ fontSize:11, color:muted }}>Your AI Study Buddy</div>
           </div>
         </div>
         <div style={{ display:"flex", gap:8 }}>
           {stage==="results" && (
-            <button onClick={()=>{ const newId = Date.now().toString(); localStorage.setItem("zimamoto_study_session_id", newId); setChatMessages([{ id:0, role:"ai", text: user.lang==="sw" ? "Habari! Mimi ni ZIMAMOTO AI 🔥\nNiulize swali lolote la masomo, au attach faili (PDF/DOCX) upate:\n• Smart Summary ya sehemu 6\n• Maswali 12 ya mtihani\n• Tags za ugumu" : "Hello! I'm ZIMAMOTO AI 🔥\nAsk me any study question, or attach a file (PDF/DOCX) to get:\n• 6-section Smart Summary\n• 12 Exam Questions\n• Difficulty tags & hints" }]); setStage("chat");setFile(null);setSummary("");setQuestions([]); }}
+            <button onClick={()=>{setStage("chat");setFile(null);setSummary("");setQuestions([]);}}
               style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:10, padding:"6px 14px", fontSize:12, color:"#0072FF", cursor:"pointer", fontWeight:600 }}>
               ← New Chat
             </button>
@@ -1303,15 +1275,9 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
           </div>
           {activeResult==="summary" && (
             <div>
-              <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:16 }}>
-                <div style={{ display:"flex", alignItems:"center", gap:8 }}>
-                  <span style={{ fontSize:18 }}>📋</span>
-                  <span style={{ fontWeight:700, fontSize:16 }}>Smart Summary</span>
-                </div>
-                <button onClick={()=>{ navigator.clipboard.writeText(summary).then(()=>{ const btn=document.getElementById("copy-summary-btn"); if(btn){btn.textContent="✅ Copied!"; setTimeout(()=>{btn.textContent="📋 Copy";},2000);} }); }} id="copy-summary-btn"
-                  style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:10, padding:"5px 12px", fontSize:12, color:"#0072FF", cursor:"pointer", fontWeight:600, flexShrink:0 }}>
-                  📋 Copy
-                </button>
+              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:16 }}>
+                <span style={{ fontSize:18 }}>📋</span>
+                <span style={{ fontWeight:700, fontSize:16 }}>Smart Summary</span>
               </div>
               <SummaryRenderer text={summary} dark={dark} />
             </div>
@@ -1320,14 +1286,10 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
             <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12 }}>
               {questions.map((q,i)=>(
                 <div key={i} style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16 }}>
-                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10, alignItems:"center" }}>
+                  <div style={{ display:"flex", gap:6, flexWrap:"wrap", marginBottom:10 }}>
                     <span className="tag" style={{ background:`${typeColor[q.type]||"#3B82F6"}20`, color:typeColor[q.type]||"#3B82F6" }}>{q.type}</span>
                     <span className="tag" style={{ background:`${diffColor[q.difficulty]||"#F59E0B"}20`, color:diffColor[q.difficulty]||"#F59E0B" }}>{q.difficulty}</span>
                     <span style={{ marginLeft:"auto", fontWeight:700, fontSize:12, color:muted }}>Q{i+1}</span>
-                    <button onClick={()=>{ const text=`Q${i+1}: ${q.q}${q.hint?" | Hint: "+q.hint:""}`; navigator.clipboard.writeText(text).then(()=>{ const btn=document.getElementById("copy-q-"+i); if(btn){btn.textContent="✅"; setTimeout(()=>{btn.textContent="📋";},2000);} }); }} id={"copy-q-"+i}
-                      style={{ background:"rgba(0,114,255,0.08)", border:"1px solid rgba(0,114,255,0.2)", borderRadius:8, padding:"2px 8px", fontSize:11, color:"#0072FF", cursor:"pointer", fontWeight:600 }}>
-                      📋
-                    </button>
                   </div>
                   <div style={{ fontWeight:600, fontSize:14, marginBottom:8, lineHeight:1.5 }}>{q.q}</div>
                   {q.hint && <div style={{ fontSize:12, color:muted, fontStyle:"italic", borderTop:`1px solid ${border}`, paddingTop:8 }}>💡 {q.hint}</div>}
@@ -1342,7 +1304,7 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
       {stage==="processing" && (
         <div className="fade-up" style={{ textAlign:"center", padding:"40px 20px" }}>
           <div style={{ fontSize:58, marginBottom:16 }}>🧠</div>
-          <div style={{ fontFamily:"'Syne',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }} className="glow-text">Analyzing....</div>
+          <div style={{ fontFamily:"'Inter',sans-serif", fontSize:20, fontWeight:800, marginBottom:6 }} className="glow-text">Analyzing....</div>
           <div style={{ fontSize:12, color:muted, marginBottom:20 }}>powered by Groq</div>
           <div style={{ display:"flex", justifyContent:"center", gap:8, marginBottom:24 }}>
             {[0,1,2,3].map(i=><div key={i} style={{ width:9, height:9, borderRadius:"50%", background:"#0072FF", animation:`pulse 1.4s ease-in-out ${i*0.22}s infinite` }} />)}
@@ -1463,7 +1425,7 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
                     </div>
                   )}
                   <textarea ref={textareaRef} value={chatInput}
-                    onChange={e=>{ if(e.target.value.length<=5000){ setChatInput(e.target.value); resizeTextarea(); }}}
+                    onChange={e=>{ if(e.target.value.length<=500){ setChatInput(e.target.value); resizeTextarea(); }}}
                     onFocus={()=>setIsGlowFocused(true)}
                     onBlur={()=>{ if(!chatInput.trim()) setIsGlowFocused(false); }}
                     onKeyDown={e=>{ if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();sendChat();} }}
@@ -1504,7 +1466,7 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
 
           {/* Bottom hint */}
           <div style={{ textAlign:"center", fontSize:10, color:"rgba(100,120,150,0.5)", marginTop:8 }}>
-            {user.lang==="sw" ? "Shift+Enter kwa mstari mpya  ·  Weka (paste) maandishi yako hapa moja kwa moja  ·  au + Attach PDF/DOCX" : "Shift+Enter for new line  ·  Paste your text directly here  ·  or + Attach PDF/DOCX for full analysis"}
+            {user.lang==="sw" ? "Shift+Enter kwa mstari mpya  ·  + Attach PDF/DOCX kwa uchambuzi kamili" : "Shift+Enter for new line  ·  + Attach PDF/DOCX for full analysis"}
           </div>
         </div>
       )}
@@ -1515,18 +1477,19 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
 // ─── DISCUSS PAGE ─────────────────────────────────────────────────────────────
 function DiscussPage({ user, dark, isMobile, puterReady }) {
   const [activeRoom, setActiveRoom] = useState(null);
+  const [activeCat, setActiveCat] = useState("All");
+  const [search, setSearch] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [hoveredCard, setHoveredCard] = useState(null);
   const [messages, setMessages] = useState([
     { id:1, sender:"Amina J.", avatar:"AJ", color:"#F59E0B", text:"Hey everyone! Let's start with integration by substitution.", time:"10:32", isAI:false },
     { id:2, sender:"ZIMAMOTO AI", avatar:"ZI", color:"#0072FF", text:"Great topic! Integration by substitution works by replacing a complex expression with a simpler variable u. Steps: 1) Choose u wisely, 2) Compute du/dx, 3) Substitute both, 4) Integrate, 5) Back-substitute.", time:"10:32", isAI:true },
     { id:3, sender:"Brian O.", avatar:"BO", color:"#10B981", text:"Can someone explain when to use substitution vs integration by parts?", time:"10:35", isAI:false },
   ]);
   const [input, setInput] = useState("");
-  const [filter, setFilter] = useState("all");
   const messagesEndRef = useRef();
-  const bg = dark?"#0D1525":"#fff";
   const border = dark?"#1E2D4A":"#DDE5F5";
-  const muted = dark?"#4A6080":"#7A8EB0";
-  const pad = isMobile?"16px":"32px 40px";
+  const muted  = dark?"#4A6080":"#7A8EB0";
 
   useEffect(()=>{ messagesEndRef.current?.scrollIntoView({behavior:"smooth"}); }, [messages]);
 
@@ -1536,7 +1499,6 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
     const now = new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
     setMessages(prev=>[...prev,{ id:Date.now(), sender:user.name, avatar:user.avatar, color:user.color, text, time:now, isAI:false }]);
     setInput("");
-    // Always respond — ZIMAMOTO AI participates in all messages
     const aiId = Date.now()+1;
     setMessages(prev=>[...prev,{ id:aiId, sender:"ZIMAMOTO AI", avatar:"ZI", color:"#0072FF", text:"", time:now, isAI:true, streaming:true }]);
     try {
@@ -1551,13 +1513,13 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
     } catch(err) { setMessages(prev=>prev.map(m=>m.id===aiId?{...m,text:"⚠️ Could not connect. Please try again.",streaming:false}:m)); }
   };
 
-  const filteredRooms = filter==="all"?DISCUSSION_ROOMS:DISCUSSION_ROOMS.filter(r=>r.major===filter);
-
+  // ── Active room (chat) view ────────────────────────────────────────────────
   if (activeRoom) {
     const room = DISCUSSION_ROOMS.find(r=>r.id===activeRoom);
+    const bg2 = dark?"#0D1525":"#fff";
     return (
       <div style={{ display:"flex", flexDirection:"column", height: isMobile?"calc(100vh - 65px)":"100vh" }}>
-        <div style={{ padding:"14px 20px", background: dark?"#080C14":"#F0F4FF", borderBottom:`1px solid ${border}`, display:"flex", alignItems:"center", gap:10 }}>
+        <div style={{ padding:"14px 20px", background:dark?"#080C14":"#F0F4FF", borderBottom:`1px solid ${border}`, display:"flex", alignItems:"center", gap:10 }}>
           <button onClick={()=>setActiveRoom(null)} style={{ background:"none", border:"none", color:muted, cursor:"pointer", fontSize:22 }}>←</button>
           <div style={{ flex:1 }}>
             <div style={{ fontWeight:700, fontSize:16 }}>{room.subject}</div>
@@ -1570,21 +1532,21 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
         </div>
         <div style={{ flex:1, overflowY:"auto", padding:"16px 20px", display:"flex", flexDirection:"column", gap:12 }}>
           {messages.map(msg=>(
-            <div key={msg.id} style={{ display:"flex", gap:10, flexDirection: msg.sender===user.name?"row-reverse":"row" }}>
-              <div style={{ width:36, height:36, borderRadius:"50%", background: msg.isAI?"linear-gradient(135deg,#00C6FF,#0072FF)":`${msg.color}22`, border:`2px solid ${msg.color}55`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color: msg.isAI?"white":msg.color, flexShrink:0 }}>{msg.avatar}</div>
-              <div style={{ maxWidth: isMobile?"76%":"60%" }}>
-                <div style={{ fontSize:11, color:muted, marginBottom:3, textAlign: msg.sender===user.name?"right":"left" }}>
+            <div key={msg.id} style={{ display:"flex", gap:10, flexDirection:msg.sender===user.name?"row-reverse":"row" }}>
+              <div style={{ width:36, height:36, borderRadius:"50%", background:msg.isAI?"linear-gradient(135deg,#00C6FF,#0072FF)":`${msg.color}22`, border:`2px solid ${msg.color}55`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:11, fontWeight:700, color:msg.isAI?"white":msg.color, flexShrink:0 }}>{msg.avatar}</div>
+              <div style={{ maxWidth:isMobile?"76%":"60%" }}>
+                <div style={{ fontSize:11, color:muted, marginBottom:3, textAlign:msg.sender===user.name?"right":"left" }}>
                   {msg.isAI?<span style={{ color:"#E25822", fontWeight:700 }}>⚡ ZIMAMOTO AI</span>:msg.sender} · {msg.time}
                 </div>
-                <div style={{ background: msg.sender===user.name?"linear-gradient(135deg,#00C6FF,#0072FF)":(msg.isAI?"rgba(0,114,255,0.1)":bg), border: msg.sender===user.name?"none":`1px solid ${msg.isAI?"rgba(0,114,255,0.3)":border}`, borderRadius: msg.sender===user.name?"14px 4px 14px 14px":"4px 14px 14px 14px", padding:"10px 14px", color: msg.sender===user.name?"white":(dark?"#CBD5E1":"#374151"), minHeight:40 }}>
-  {msg.text ? <MarkdownText text={msg.text} isUser={msg.sender===user.name} /> : (msg.streaming && <StreamDots />)}
-</div>
+                <div style={{ background:msg.sender===user.name?"linear-gradient(135deg,#00C6FF,#0072FF)":(msg.isAI?"rgba(0,114,255,0.1)":bg2), border:msg.sender===user.name?"none":`1px solid ${msg.isAI?"rgba(0,114,255,0.3)":border}`, borderRadius:msg.sender===user.name?"14px 4px 14px 14px":"4px 14px 14px 14px", padding:"10px 14px", color:msg.sender===user.name?"white":(dark?"#CBD5E1":"#374151"), minHeight:40 }}>
+                  {msg.text ? <MarkdownText text={msg.text} isUser={msg.sender===user.name} /> : (msg.streaming && <StreamDots />)}
+                </div>
               </div>
             </div>
           ))}
           <div ref={messagesEndRef} />
         </div>
-        <div style={{ padding:"12px 20px", background: dark?"#080C14":"#F0F4FF", borderTop:`1px solid ${border}`, display:"flex", gap:8 }}>
+        <div style={{ padding:"12px 20px", background:dark?"#080C14":"#F0F4FF", borderTop:`1px solid ${border}`, display:"flex", gap:8 }}>
           <input className="z-input" style={!dark?{background:"#F7F9FF",color:"#1a1f2e",border:"1px solid #DDE5F5"}:{}} placeholder="Ask a question (AI responds automatically)..." value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&sendMsg()} />
           <button className="z-btn z-btn-primary" style={{ padding:"11px 18px", borderRadius:10, flexShrink:0 }} onClick={sendMsg}>↑</button>
         </div>
@@ -1592,44 +1554,157 @@ function DiscussPage({ user, dark, isMobile, puterReady }) {
     );
   }
 
+  // ── Category mapping ──────────────────────────────────────────────────────
+  const CATS = ["All","Science & Mathematics","Social Sciences","Business & Economics","Law & Governance","Humanities"];
+  const MAJOR_TO_CAT = { science:"Science & Mathematics", social:"Social Sciences", business:"Business & Economics", law:"Law & Governance", humanities:"Humanities", ict:"Science & Mathematics", medical:"Science & Mathematics" };
+
+  const filteredRooms = DISCUSSION_ROOMS.filter(r => {
+    const catMatch = activeCat==="All" || MAJOR_TO_CAT[r.major]===activeCat;
+    const searchMatch = !search || r.subject?.toLowerCase().includes(search.toLowerCase()) || r.topic?.toLowerCase().includes(search.toLowerCase());
+    return catMatch && searchMatch;
+  });
+
+  // ── Lobby view (new premium design) ──────────────────────────────────────
+  const pageBg = dark ? "linear-gradient(160deg,#06091A 0%,#090D22 50%,#060912 100%)" : "linear-gradient(160deg,#F0F4FF,#EEF2FF)";
+
   return (
-    <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Discussion Rooms</div>
-      <p style={{ fontSize:13, color:muted, marginBottom:18 }}>Join a live study session. ZIMAMOTO AI assists in every room.</p>
-      <div style={{ display:"flex", gap:8, overflowX:"auto", marginBottom:20, paddingBottom:4 }}>
-        {[{id:"all",label:"All",icon:""},...MAJORS.slice(0,7)].map(m=>(
-          <button key={m.id} className="pill-btn" onClick={()=>setFilter(m.id)}
-            style={{ background: filter===m.id?"linear-gradient(135deg,#00C6FF,#0072FF)":bg, borderColor: filter===m.id?"transparent":border, color: filter===m.id?"white":muted }}>
-            {m.icon?`${m.icon} `:""}{m.label||"All"}
-          </button>
-        ))}
-      </div>
-      <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:12 }}>
-        {filteredRooms.map((room,i)=>{
-          const mi = MAJORS.find(m=>m.id===room.major);
-          return (
-            <div key={room.id} className="fade-up" style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, padding:16, cursor:"pointer", transition:"all 0.2s", animationDelay:`${i*0.06}s` }}
-              onClick={()=>setActiveRoom(room.id)}
-              onMouseEnter={e=>e.currentTarget.style.borderColor="#0072FF55"}
-              onMouseLeave={e=>e.currentTarget.style.borderColor=border}>
-              <div style={{ display:"flex", alignItems:"flex-start", gap:12 }}>
-                <div style={{ width:46, height:46, borderRadius:12, background:`${mi?.color||"#3B82F6"}15`, border:`1.5px solid ${mi?.color||"#3B82F6"}40`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{mi?.icon||"📚"}</div>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4 }}>
-                    <span style={{ fontWeight:700, fontSize:15 }}>{room.subject}</span>
-                    {room.active&&<><div style={{ width:6, height:6, borderRadius:"50%", background:"#10B981", animation:"pulse 2s infinite" }}/><span style={{ fontSize:10, color:"#10B981", fontWeight:700 }}>ONLINE</span></>}
+    <div style={{ minHeight:"100vh", background:pageBg, fontFamily:"'Outfit','Inter',sans-serif", padding: isMobile?"16px":"40px 40px 72px", position:"relative", overflowX:"hidden" }}>
+      {/* Ambient glows */}
+      <div style={{ position:"fixed", top:"-80px", left:"-60px", width:480, height:480, background:"radial-gradient(ellipse,rgba(50,70,255,0.06) 0%,transparent 65%)", pointerEvents:"none", zIndex:0 }} />
+      <div style={{ position:"fixed", bottom:0, right:"-60px", width:400, height:400, background:"radial-gradient(ellipse,rgba(110,50,240,0.05) 0%,transparent 65%)", pointerEvents:"none", zIndex:0 }} />
+
+      <div style={{ maxWidth: isMobile?"100%":1160, margin:"0 auto", position:"relative", zIndex:1 }}>
+
+        {/* Header */}
+        <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", gap:20, marginBottom:32, flexWrap:"wrap" }}>
+          <div>
+            <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?28:38, fontWeight:800, color:dark?"#fff":"#0A0F28", lineHeight:1.1, marginBottom:8 }}>Discussion Rooms</h1>
+            <p style={{ fontSize:13, color:muted }}>Learn together. Share ideas. Grow your knowledge.</p>
+            <div style={{ display:"flex", gap:10, marginTop:20 }}>
+              <button onClick={()=>{setActiveCat("All");setSearch("");}}
+                style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(90deg,#2A50FF,#4830FF)", border:"none", borderRadius:11, padding:"12px 22px", color:"#fff", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 18px rgba(50,70,255,0.4)", transition:"all 0.2s" }}
+                onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(50,70,255,0.5)";}}
+                onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(50,70,255,0.4)";}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+                Explore Rooms
+              </button>
+              <button onClick={()=>setShowModal(true)}
+                style={{ display:"flex", alignItems:"center", gap:8, background:"rgba(90,50,200,0.12)", border:"1px solid rgba(120,80,255,0.4)", borderRadius:11, padding:"12px 22px", color:"#A080FF", fontWeight:700, fontSize:13, cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s" }}
+                onMouseEnter={e=>{e.currentTarget.style.background="rgba(90,50,200,0.22)";e.currentTarget.style.transform="translateY(-2px)";}}
+                onMouseLeave={e=>{e.currentTarget.style.background="rgba(90,50,200,0.12)";e.currentTarget.style.transform="";}}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Create Room
+              </button>
+            </div>
+          </div>
+          {/* Search */}
+          <div style={{ display:"flex", alignItems:"center", gap:10, background:dark?"rgba(12,18,40,0.9)":"rgba(240,244,255,0.9)", border:`1px solid ${dark?"rgba(50,70,160,0.22)":border}`, borderRadius:13, padding:"0 14px", height:46, minWidth:isMobile?"100%":260, marginTop:4, transition:"border-color 0.2s" }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke={muted} strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search rooms..."
+              style={{ background:"transparent", border:"none", outline:"none", color:dark?"#E2E8F8":"#1a1f2e", fontSize:13, flex:1, fontFamily:"inherit" }} />
+          </div>
+        </div>
+
+        {/* Category filters */}
+        <div style={{ display:"flex", gap:8, marginBottom:28, flexWrap:"wrap", alignItems:"center" }}>
+          {CATS.map(cat=>{
+            const active = activeCat===cat;
+            return (
+              <button key={cat} onClick={()=>setActiveCat(cat)}
+                style={{ padding:"7px 16px", borderRadius:100, background:active?"linear-gradient(90deg,#2A50FF,#4830FF)":(dark?"rgba(12,18,40,0.8)":"rgba(230,235,255,0.8)"), border:active?"1px solid rgba(70,100,255,0.4)":`1px solid ${dark?"rgba(50,70,160,0.18)":border}`, color:active?"#fff":muted, fontSize:12, fontWeight:active?700:500, cursor:"pointer", fontFamily:"inherit", transition:"all 0.18s", boxShadow:active?"0 3px 12px rgba(50,70,255,0.3)":"none", whiteSpace:"nowrap" }}
+                onMouseEnter={e=>{if(!active){e.currentTarget.style.borderColor="rgba(70,100,255,0.35)";e.currentTarget.style.color=dark?"#7A99CC":"#3A5ABB";}}}
+                onMouseLeave={e=>{if(!active){e.currentTarget.style.borderColor=dark?"rgba(50,70,160,0.18)":border;e.currentTarget.style.color=muted;}}}>
+                {cat}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Room grid */}
+        {filteredRooms.length > 0 ? (
+          <div style={{ display:"grid", gridTemplateColumns:isMobile?"1fr":"1fr 1fr", gap:18, marginBottom:36 }}>
+            {filteredRooms.map(room=>{
+              const mi = MAJORS.find(m=>m.id===room.major);
+              const hov = hoveredCard===room.id;
+              return (
+                <div key={room.id}
+                  onMouseEnter={()=>setHoveredCard(room.id)}
+                  onMouseLeave={()=>setHoveredCard(null)}
+                  onClick={()=>setActiveRoom(room.id)}
+                  style={{ background:hov?(dark?"linear-gradient(135deg,rgba(16,24,54,0.95),rgba(12,16,36,0.95))":"linear-gradient(135deg,#E8EDFF,#EEF2FF)"):(dark?"linear-gradient(135deg,rgba(12,18,42,0.85),rgba(8,12,30,0.85))":"rgba(255,255,255,0.9)"), border:`1px solid ${hov?"rgba(70,100,255,0.32)":(dark?"rgba(50,70,160,0.16)":border)}`, borderRadius:18, padding:"20px 20px 16px", cursor:"pointer", transition:"all 0.25s", transform:hov?"translateY(-3px)":"none", boxShadow:hov?"0 12px 36px rgba(50,80,255,0.14)":"0 4px 16px rgba(0,0,0,0.08)" }}>
+                  {/* Top row */}
+                  <div style={{ display:"flex", alignItems:"flex-start", gap:14, marginBottom:14 }}>
+                    <div style={{ width:52, height:52, borderRadius:13, background:mi?`${mi.color}20`:"rgba(50,80,255,0.15)", border:`1.5px solid ${mi?mi.color+"40":"rgba(50,80,255,0.3)"}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:22, flexShrink:0 }}>{mi?.icon||"📚"}</div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:4, flexWrap:"wrap" }}>
+                        <span style={{ fontSize:16, fontWeight:700, color:dark?"#DDE5F5":"#0A0F28" }}>{room.subject}</span>
+                        {room.active && (
+                          <span style={{ display:"flex", alignItems:"center", gap:4, fontSize:10, fontWeight:700, color:"#22C55E", background:"rgba(34,197,94,0.1)", border:"1px solid rgba(34,197,94,0.22)", borderRadius:20, padding:"2px 8px", flexShrink:0 }}>
+                            <span style={{ width:5, height:5, borderRadius:"50%", background:"#22C55E", display:"inline-block" }} /> ONLINE
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize:12, color:muted, lineHeight:1.5 }}>{room.topic}</div>
+                    </div>
                   </div>
-                  <div style={{ fontSize:12, color:muted, marginBottom:10 }}>{room.topic}</div>
-                  <div style={{ display:"flex", alignItems:"center", gap:14, fontSize:12, color:muted }}>
-                    <span>👥 {room.members}</span><span>💬 {room.msgs}</span>
-                    <span style={{ color:"#0072FF", fontWeight:700, marginLeft:"auto" }}>Join →</span>
+                  {/* Footer */}
+                  <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                    <div style={{ display:"flex", gap:14 }}>
+                      <span style={{ fontSize:12, color:muted, display:"flex", alignItems:"center", gap:4 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+                        {room.members}
+                      </span>
+                      <span style={{ fontSize:12, color:muted, display:"flex", alignItems:"center", gap:4 }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        {room.msgs}
+                      </span>
+                    </div>
+                    <span style={{ padding:"7px 14px", borderRadius:9, background:hov?"linear-gradient(90deg,#2A50FF,#4830FF)":"transparent", border:"1px solid rgba(70,100,255,0.4)", color:hov?"#fff":"#6080FF", fontSize:12, fontWeight:600, display:"flex", alignItems:"center", gap:4, transition:"all 0.2s", boxShadow:hov?"0 4px 12px rgba(50,70,255,0.3)":"none" }}>
+                      Join Room
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </span>
                   </div>
                 </div>
-              </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div style={{ textAlign:"center", padding:"60px 0", color:muted, fontSize:15 }}>No rooms match your search or filter.</div>
+        )}
+
+        {/* Bottom CTA */}
+        <div style={{ background:dark?"linear-gradient(135deg,rgba(12,18,46,0.92),rgba(16,10,36,0.92))":"linear-gradient(135deg,#E8EDFF,#EEF0FF)", border:`1px dashed ${dark?"rgba(90,60,220,0.28)":"rgba(80,60,200,0.25)"}`, borderRadius:20, padding:"26px 32px", display:"flex", alignItems:"center", justifyContent:"space-between", gap:20, flexWrap:"wrap" }}>
+          <div style={{ display:"flex", alignItems:"center", gap:18 }}>
+            <div style={{ width:48, height:48, borderRadius:"50%", background:"rgba(90,60,220,0.12)", border:"1px solid rgba(90,60,220,0.28)", display:"flex", alignItems:"center", justifyContent:"center", color:"#9A6FFF", flexShrink:0, fontSize:20 }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             </div>
-          );
-        })}
+            <div>
+              <div style={{ fontSize:15, fontWeight:700, color:dark?"#DDE5F5":"#0A0F28", marginBottom:3 }}>Can't find what you're looking for?</div>
+              <div style={{ fontSize:12, color:muted, lineHeight:1.5 }}>Create your own discussion room and build your learning community.</div>
+            </div>
+          </div>
+          <button onClick={()=>setShowModal(true)}
+            style={{ display:"flex", alignItems:"center", gap:8, background:"linear-gradient(90deg,#6030FF,#9030FF)", border:"none", borderRadius:13, padding:"13px 26px", color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", flexShrink:0, boxShadow:"0 4px 18px rgba(90,40,255,0.38)", transition:"all 0.2s" }}
+            onMouseEnter={e=>{e.currentTarget.style.transform="translateY(-2px)";e.currentTarget.style.boxShadow="0 8px 24px rgba(90,40,255,0.5)";}}
+            onMouseLeave={e=>{e.currentTarget.style.transform="";e.currentTarget.style.boxShadow="0 4px 18px rgba(90,40,255,0.38)";}}>
+            Create Your Room
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </button>
+        </div>
       </div>
+
+      {/* Coming Soon Modal */}
+      {showModal && (
+        <div onClick={()=>setShowModal(false)} style={{ position:"fixed", inset:0, background:"rgba(0,0,0,0.7)", backdropFilter:"blur(8px)", display:"flex", alignItems:"center", justifyContent:"center", zIndex:999, padding:20 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:dark?"linear-gradient(135deg,rgba(14,20,46,0.98),rgba(8,12,28,0.98))":"#fff", border:"1px solid rgba(90,110,255,0.22)", borderRadius:22, padding:"38px 34px", width:"100%", maxWidth:420, textAlign:"center", boxShadow:"0 0 60px rgba(70,90,255,0.18),0 24px 56px rgba(0,0,0,0.6)", position:"relative" }}>
+            <button onClick={()=>setShowModal(false)} style={{ position:"absolute", top:14, right:14, background:"rgba(255,255,255,0.06)", border:"1px solid rgba(255,255,255,0.1)", borderRadius:"50%", width:30, height:30, color:"#667799", cursor:"pointer", fontSize:14, display:"flex", alignItems:"center", justifyContent:"center", fontFamily:"inherit" }}>✕</button>
+            <div style={{ fontSize:48, marginBottom:14 }}>🚀</div>
+            <div style={{ fontFamily:"'Syne',sans-serif", fontSize:24, fontWeight:800, color:dark?"#fff":"#0A0F28", marginBottom:10 }}>Coming Soon!</div>
+            <div style={{ fontSize:13, color:muted, lineHeight:1.7, marginBottom:28 }}>Discussion room creation is currently under development and will be available in a future update. Stay tuned!</div>
+            <button onClick={()=>setShowModal(false)} style={{ width:"100%", padding:"13px", background:"linear-gradient(90deg,#4060FF,#7040FF)", border:"none", borderRadius:11, color:"#fff", fontWeight:700, fontSize:14, cursor:"pointer", fontFamily:"inherit", boxShadow:"0 4px 18px rgba(80,80,255,0.35)" }}>Got It</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1735,7 +1810,7 @@ useEffect(() => {
           <div><div style={{ fontWeight:700 }}>{activePost.author}</div><div style={{ fontSize:12, color:muted }}>{activePost.date}</div></div>
           <span className="tag" style={{ marginLeft:"auto", background:`${cc}20`, color:cc }}>{activePost.category}</span>
         </div>
-        <h1 style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?20:26, fontWeight:800, lineHeight:1.3, marginBottom:20 }}>{activePost.title}</h1>
+        <h1 style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?20:26, fontWeight:800, lineHeight:1.3, marginBottom:20 }}>{activePost.title}</h1>
         <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:16, padding:22, fontSize:14, lineHeight:1.9, color: dark?"#CBD5E1":"#374151", whiteSpace:"pre-wrap" }}>{activePost.content}</div>
       </div>
     );
@@ -1743,7 +1818,7 @@ useEffect(() => {
 
   return (
     <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Advice Room</div>
+      <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:4 }}>Advice Room</div>
       <p style={{ fontSize:13, color:muted, marginBottom:18 }}>Peer advice or chat with ZIMAMOTO AI</p>
       <div style={{ display:"flex", gap:8, marginBottom:22 }}>
         {[{id:"feed",label:"📰 Blog Feed"},{id:"ai",label:"⚡ Ask AI"}].map(v=>(
@@ -1868,7 +1943,7 @@ function SettingsPage({ user, setUser, dark, isMobile, onSignOut }) {
 
   return (
     <div style={{ padding:pad }}>
-      <div style={{ fontFamily:"'Syne',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:22 }}>Settings</div>
+      <div style={{ fontFamily:"'Inter',sans-serif", fontSize:isMobile?22:28, fontWeight:800, marginBottom:22 }}>Settings</div>
 
       <div style={{ background:"linear-gradient(135deg,rgba(0,114,255,0.12),rgba(124,58,237,0.08))", border:"1px solid rgba(0,114,255,0.22)", borderRadius:18, padding:20, marginBottom:20, display:"flex", alignItems:"center", gap:14 }}>
         <div style={{ width:60, height:60, borderRadius:"50%", background:`${user.color}22`, border:`3px solid ${user.color}`, display:"flex", alignItems:"center", justifyContent:"center", fontSize:20, fontWeight:800, color:user.color }}>{user.avatar}</div>
@@ -1919,7 +1994,7 @@ function SettingsPage({ user, setUser, dark, isMobile, onSignOut }) {
         Sign Out
       </button>
       <div style={{ textAlign:"center", marginTop:24, color:muted, fontSize:12 }}>
-        <div style={{ fontFamily:"'Syne',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
+        <div style={{ fontFamily:"'Inter',sans-serif", fontWeight:800, fontSize:16, marginBottom:4 }} className="glow-text">ZIMAMOTO AI</div>
         <div>©Mwasa Inc 2026 · Built for African Students</div>
         <div style={{ marginTop:4, opacity:0.6 }}>Version 2.0 · powered by Groq</div>
       </div>

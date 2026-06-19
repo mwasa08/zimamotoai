@@ -995,8 +995,11 @@ function StudyAI({ user, dark, isMobile, puterReady }) {
   const [questions, setQuestions] = useState([]);
   const [activeResult, setActiveResult] = useState("summary");
   const [streamPreview, setStreamPreview] = useState("");
-  const [studyHistory, setStudyHistory] = useState([]);
+  const [studyHistory, setStudyHistory] = useState(()=>{ try { return JSON.parse(localStorage.getItem("zimamoto_study_history")||"[]"); } catch { return []; } });
+  const [chatSessions, setChatSessions] = useState(()=>{ try { return JSON.parse(localStorage.getItem("zimamoto_chat_sessions")||"[]"); } catch { return []; } });
   const [showStudyHistory, setShowStudyHistory] = useState(false);
+  const [activeHistoryTab, setActiveHistoryTab] = useState("files");
+  const [copiedId, setCopiedId] = useState(null);
   // Chat input state
   const [chatMessages, setChatMessages] = useState([
     { id:0, role:"ai", text: user.lang==="sw"
@@ -1085,7 +1088,20 @@ function StudyAI({ user, dark, isMobile, puterReady }) {
         (partial) => { setChatMessages(prev => prev.map(m => m.id===aiId ? {...m, text:partial} : m)); },
         2500
       );
-      setChatMessages(prev => prev.map(m => m.id===aiId ? {...m, streaming:false} : m));
+      setChatMessages(prev => {
+        const updated = prev.map(m => m.id===aiId ? {...m, streaming:false} : m);
+        // Save chat session to localStorage after every AI reply
+        try {
+          const title = text.slice(0,55)+(text.length>55?"...":"");
+          const sessId = "chat_q_"+Date.now();
+          const entry = { id:sessId, title, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}), type:"chat", messages:updated.slice(-20) };
+          const existing = JSON.parse(localStorage.getItem("zimamoto_chat_sessions")||"[]");
+          const newSessions = [entry, ...existing].slice(0,30);
+          localStorage.setItem("zimamoto_chat_sessions", JSON.stringify(newSessions));
+          setChatSessions(newSessions);
+        } catch {}
+        return updated;
+      });
     } catch(err) {
       console.error("Chat AI error:", err.message);
       setChatMessages(prev => prev.map(m => m.id===aiId ? {...m, text:`⚠️ Error: ${err.message}. Please try again.`, streaming:false} : m));
@@ -1199,12 +1215,13 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
       setSummary(summary); setQuestions(questions); setStage("results");
       setChatMessages(prev => [...prev, { id:Date.now(), role:"ai", text:`✅ Analysis complete! I found **${questions.length} exam questions** and a **6-section smart summary** for **${activeFile.name}**. Tap the tabs below to explore your study pack.` }]);
 
-      // Save to history
+      // Save file analysis history (up to 25 files)
       try {
         const existing = JSON.parse(localStorage.getItem("zimamoto_study_history")||"[]");
         const entry = { id:Date.now(), fileName:activeFile.name, date:new Date().toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"}), summary, questions };
-        const updated = [entry, ...existing.filter(e=>e.fileName!==file.name)].slice(0,15);
+        const updated = [entry, ...existing.filter(e=>e.fileName!==activeFile.name)].slice(0,25);
         localStorage.setItem("zimamoto_study_history", JSON.stringify(updated));
+        setStudyHistory(updated);
       } catch {}
 
     } catch(e) { alert("Error: "+e.message); setStage("upload"); }
@@ -1232,33 +1249,76 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
               ← New Chat
             </button>
           )}
-          <button onClick={async()=>{ try { const r=localStorage.getItem("zimamoto_study_history"); setStudyHistory(r?JSON.parse(r):[]); } catch { setStudyHistory([]); } setShowStudyHistory(h=>!h); }}
-            style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:10, padding:"6px 14px", fontSize:12, color:"#0072FF", cursor:"pointer", fontWeight:600 }}>
+          <button onClick={()=>{
+              try { setStudyHistory(JSON.parse(localStorage.getItem("zimamoto_study_history")||"[]")); } catch {}
+              try { setChatSessions(JSON.parse(localStorage.getItem("zimamoto_chat_sessions")||"[]")); } catch {}
+              setShowStudyHistory(h=>!h);
+            }}
+            style={{ background:"rgba(0,114,255,0.1)", border:"1px solid rgba(0,114,255,0.25)", borderRadius:10, padding:"6px 14px", fontSize:12, color:"#0072FF", cursor:"pointer", fontWeight:600, display:"flex", alignItems:"center", gap:5 }}>
             🕒 History
+            {(studyHistory.length+chatSessions.length)>0 && <span style={{ background:"#0072FF", color:"white", borderRadius:100, padding:"1px 6px", fontSize:10, fontWeight:800 }}>{studyHistory.length+chatSessions.length}</span>}
           </button>
         </div>
       </div>
 
       {/* ── HISTORY PANEL ── */}
       {showStudyHistory && (
-        <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:14, overflow:"hidden", marginBottom:14 }}>
-          {studyHistory.length === 0
-            ? <div style={{ padding:"16px", textAlign:"center", color:muted, fontSize:13 }}>No past analyses yet.</div>
-            : studyHistory.map(item => (
-              <div key={item.id}
-                onClick={() => { setSummary(item.summary); setQuestions(item.questions); setStage("results"); setShowStudyHistory(false); }}
-                style={{ padding:"11px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", display:"flex", alignItems:"center", gap:10 }}
-                onMouseEnter={e=>e.currentTarget.style.background="rgba(0,114,255,0.06)"}
-                onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
-                <span style={{ fontSize:20 }}>{item.fileName.endsWith(".pdf")?"📄":item.fileName.endsWith(".docx")?"📝":"📊"}</span>
-                <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.fileName}</div>
-                  <div style={{ fontSize:11, color:muted }}>{item.date} · {item.questions.length} questions</div>
-                </div>
-                <span style={{ fontSize:11, color:"#0072FF", fontWeight:700 }}>Reopen →</span>
-              </div>
-            ))
-          }
+        <div style={{ background:bg, border:`1px solid ${border}`, borderRadius:16, overflow:"hidden", marginBottom:14, boxShadow:"0 4px 20px rgba(0,0,0,0.15)" }}>
+          {/* Tabs */}
+          <div style={{ display:"flex", borderBottom:`1px solid ${border}` }}>
+            {[{id:"files",label:"📄 Files",count:studyHistory.length},{id:"chats",label:"💬 Chats",count:chatSessions.filter(s=>s.type==="chat").length}].map(tab=>(
+              <button key={tab.id} onClick={()=>setActiveHistoryTab(tab.id)}
+                style={{ flex:1, padding:"11px", background:activeHistoryTab===tab.id?"rgba(0,114,255,0.08)":"transparent", border:"none", borderBottom:activeHistoryTab===tab.id?"2px solid #0072FF":"2px solid transparent", color:activeHistoryTab===tab.id?"#0072FF":muted, fontWeight:activeHistoryTab===tab.id?700:500, fontSize:12, cursor:"pointer", fontFamily:"inherit", transition:"all 0.15s", display:"flex", alignItems:"center", justifyContent:"center", gap:5 }}>
+                {tab.label}
+                <span style={{ background:activeHistoryTab===tab.id?"#0072FF":"rgba(0,0,0,0.1)", color:activeHistoryTab===tab.id?"white":muted, borderRadius:100, padding:"0px 6px", fontSize:10, fontWeight:800 }}>{tab.count}</span>
+              </button>
+            ))}
+            <button onClick={()=>setShowStudyHistory(false)} style={{ padding:"0 14px", background:"transparent", border:"none", color:muted, cursor:"pointer", fontSize:18 }}>×</button>
+          </div>
+
+          {/* Files list */}
+          {activeHistoryTab==="files" && (
+            <div style={{ maxHeight:300, overflowY:"auto" }}>
+              {studyHistory.length===0
+                ? <div style={{ padding:"20px", textAlign:"center", color:muted, fontSize:13 }}>No files yet. Attach a PDF or DOCX to analyse it.</div>
+                : studyHistory.map(item=>(
+                  <div key={item.id} onClick={()=>{ setSummary(item.summary); setQuestions(item.questions||[]); setStage("results"); setShowStudyHistory(false); }}
+                    style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", display:"flex", alignItems:"center", gap:10, transition:"background 0.15s" }}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(0,114,255,0.06)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <span style={{ fontSize:22 }}>{item.fileName?.endsWith(".pdf")?"📄":item.fileName?.endsWith(".docx")?"📝":"📊"}</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{item.fileName}</div>
+                      <div style={{ fontSize:11, color:muted, marginTop:1 }}>{item.date} · {item.questions?.length||0} questions</div>
+                    </div>
+                    <span style={{ fontSize:11, color:"#0072FF", fontWeight:700, flexShrink:0 }}>Open →</span>
+                  </div>
+                ))
+              }
+            </div>
+          )}
+
+          {/* Chats list */}
+          {activeHistoryTab==="chats" && (
+            <div style={{ maxHeight:300, overflowY:"auto" }}>
+              {chatSessions.filter(s=>s.type==="chat").length===0
+                ? <div style={{ padding:"20px", textAlign:"center", color:muted, fontSize:13 }}>No saved chats yet. Ask a question to get started.</div>
+                : chatSessions.filter(s=>s.type==="chat").map(session=>(
+                  <div key={session.id} onClick={()=>{ if(session.messages){ setChatMessages(session.messages); setStage("chat"); setShowStudyHistory(false); } }}
+                    style={{ padding:"12px 16px", borderBottom:`1px solid ${border}`, cursor:"pointer", display:"flex", alignItems:"center", gap:10, transition:"background 0.15s" }}
+                    onMouseEnter={e=>e.currentTarget.style.background="rgba(0,114,255,0.06)"}
+                    onMouseLeave={e=>e.currentTarget.style.background="transparent"}>
+                    <span style={{ fontSize:22 }}>💬</span>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontWeight:600, fontSize:13, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{session.title}</div>
+                      <div style={{ fontSize:11, color:muted, marginTop:1 }}>{session.date} · {session.messages?.length||0} messages</div>
+                    </div>
+                    <span style={{ fontSize:11, color:"#0072FF", fontWeight:700, flexShrink:0 }}>Open →</span>
+                  </div>
+                ))
+              }
+            </div>
+          )}
         </div>
       )}
 
@@ -1330,19 +1390,33 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
                 color: msg.role==="ai"?"white":"#a78bfa" }}>
                 {msg.role==="ai"?"🔥":user.avatar}
               </div>
-              {/* Bubble */}
-              <div style={{ maxWidth:"78%",
-                background: msg.role==="user"?"linear-gradient(135deg,rgba(0,198,255,0.18),rgba(0,114,255,0.22))":"rgba(255,255,255,0.04)",
-                border: msg.role==="user"?"1px solid rgba(0,114,255,0.3)":`1px solid ${border}`,
-                borderRadius: msg.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px",
-                padding:"11px 15px", fontSize:14, lineHeight:1.7,
-                color: dark?"#CBD5E1":"#374151" }}>
-                {msg.streaming && !msg.text
-                  ? <div style={{ display:"flex", gap:4, alignItems:"center", padding:"4px 0" }}>
-                      {[0,1,2].map(i=><div key={i} style={{ width:7, height:7, borderRadius:"50%", background:"rgba(0,114,255,0.5)", animation:`pulse 1.4s ease-in-out ${i*0.2}s infinite` }} />)}
-                    </div>
-                  : <MarkdownText text={msg.text} isUser={msg.role==="user"} />
-                }
+              {/* Bubble + copy */}
+              <div style={{ maxWidth:"78%", display:"flex", flexDirection:"column", gap:4, alignItems:msg.role==="user"?"flex-end":"flex-start" }}>
+                <div style={{
+                  background: msg.role==="user"?"linear-gradient(135deg,rgba(0,198,255,0.18),rgba(0,114,255,0.22))":"rgba(255,255,255,0.04)",
+                  border: msg.role==="user"?"1px solid rgba(0,114,255,0.3)":`1px solid ${border}`,
+                  borderRadius: msg.role==="user"?"16px 4px 16px 16px":"4px 16px 16px 16px",
+                  padding:"11px 15px", fontSize:14, lineHeight:1.7,
+                  color: dark?"#CBD5E1":"#374151" }}>
+                  {msg.streaming && !msg.text
+                    ? <div style={{ display:"flex", gap:4, alignItems:"center", padding:"4px 0" }}>
+                        {[0,1,2].map(i=><div key={i} style={{ width:7, height:7, borderRadius:"50%", background:"rgba(0,114,255,0.5)", animation:`pulse 1.4s ease-in-out ${i*0.2}s infinite` }} />)}
+                      </div>
+                    : <MarkdownText text={msg.text} isUser={msg.role==="user"} />
+                  }
+                </div>
+                {/* Copy button — AI messages only */}
+                {msg.role==="ai" && msg.text && !msg.streaming && (
+                  <button onClick={()=>{ navigator.clipboard.writeText(msg.text).then(()=>{ setCopiedId(msg.id); setTimeout(()=>setCopiedId(null),2000); }).catch(()=>{}); }}
+                    style={{ display:"flex", alignItems:"center", gap:4, background:copiedId===msg.id?"rgba(16,185,129,0.1)":"transparent", border:`1px solid ${copiedId===msg.id?"rgba(16,185,129,0.3)":border}`, borderRadius:6, padding:"3px 9px", fontSize:11, color:copiedId===msg.id?"#10B981":muted, cursor:"pointer", fontFamily:"inherit", transition:"all 0.2s" }}
+                    onMouseEnter={e=>{if(copiedId!==msg.id){e.currentTarget.style.background="rgba(0,114,255,0.08)";e.currentTarget.style.borderColor="rgba(0,114,255,0.3)";e.currentTarget.style.color="#0072FF";}}}
+                    onMouseLeave={e=>{if(copiedId!==msg.id){e.currentTarget.style.background="transparent";e.currentTarget.style.borderColor=border;e.currentTarget.style.color=muted;}}}>
+                    {copiedId===msg.id
+                      ? <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg> Copied!</>
+                      : <><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy</>
+                    }
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -1466,7 +1540,9 @@ MCQ|Easy|What is the main function of mitochondria?|Think about energy productio
 
           {/* Bottom hint */}
           <div style={{ textAlign:"center", fontSize:10, color:"rgba(100,120,150,0.5)", marginTop:8 }}>
-            {user.lang==="sw" ? "Shift+Enter kwa mstari mpya  ·  + Attach PDF/DOCX kwa uchambuzi kamili" : "Shift+Enter for new line  ·  + Attach PDF/DOCX for full analysis"}
+            {user.lang==="sw"
+              ? "Shift+Enter kwa mstari mpya  ·  + Attach PDF/DOCX  ·  Paste text moja kwa moja"
+              : "Shift+Enter for new line  ·  + Attach PDF/DOCX  ·  You can also paste text directly"}
           </div>
         </div>
       )}
